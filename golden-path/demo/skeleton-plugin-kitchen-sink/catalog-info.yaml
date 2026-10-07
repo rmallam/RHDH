@@ -1,0 +1,36 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.appName }}
+  description: ${{ values.appDescription }}
+  tags:
+    - nodejs
+    - udi
+    - demo
+    - plugins
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: ${{ values.githubOwner }}/${{ values.appName }}
+    jenkins.io/job-full-name: demo/${{ values.appName }}
+    sonarqube.org/project-key: ${{ values.appName }}
+    argocd/app-name: developer-hub
+    argocd/app-namespace: openshift-gitops
+    backstage.io/kubernetes-id: ${{ values.appName }}
+    backstage.io/kubernetes-namespace: ${{ values.targetNamespace }}
+    vault.io/secrets-path: rhdh
+    jira/project-key: DEMO
+    jira/component: ${{ values.appName }}
+    snyk.io/org-id: stub-org
+    snyk.io/org-name: stub-org
+    snyk.io/project-ids: stub
+    servicenow.com/entity-id: demo
+    jfrog-artifactory/image-name: ${{ values.appName }}
+    dynatrace.com/dynatrace-entity-id: SERVICE-DEMO
+    acme.io/devfile-path: devfile.yaml
+    acme.io/devspaces-url: ${{ values.devSpacesBaseUrl }}
+    acme.io/devspaces-factory-url: ${{ values.devSpacesBaseUrl }}/f?url=https://github.com/${{ values.githubOwner }}/${{ values.appName }}&new
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:default/guest
+  system: plugin-kitchen-sink
