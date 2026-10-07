@@ -1,0 +1,13 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: acme-demo-golden-path
+  description: Demo end-to-end templates (feature branch + Dev Spaces)
+spec:
+  targets:
+    - ./template-e2e-feature-devspaces.yaml
+    - ./template-node-udi-devspaces.yaml
+    - ./template-start-feature-devspaces.yaml
+    - ./template-open-devspaces-namespace.yaml
+    - ./template-plugin-kitchen-sink.yaml

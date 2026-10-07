@@ -176,6 +176,14 @@ After Entra secret or `domainHint` / `baseUrl` changes, users must **sign out an
 4. Sign out completely (or private window) — old sessions may still be `user:default/alice@…`
 5. Guest templates are owned by `user:default/guest`; Microsoft users see them only if RBAC allows (developer role in the CSV)
 
+## Plugin runbooks
+
+Per-plugin requirements, secrets, annotations, and known issues (update when a tab fails or a fix lands):
+
+[docs/rhdh-plugins/README.md](../../docs/rhdh-plugins/README.md)
+
+Demo fixture: catalog entity `plugin-kitchen-sink`. Golden-path template: `acme-plugin-kitchen-sink` (GitHub + Dev Spaces factory URL).
+
 ## Tests
 
 ```bash

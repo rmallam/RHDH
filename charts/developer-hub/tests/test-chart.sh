@@ -131,6 +131,8 @@ raise "demo jira url #{jira_url}" unless jira_url == "http://saas-stubs.saas-stu
 locs = d.dig("catalog", "locations") || []
 file_loc = locs.find { |l| l["target"].to_s.include?("catalog-demo/catalog-info.yaml") }
 raise "demo missing kitchen-sink file location" unless file_loc
+ks_tpl = locs.find { |l| l["target"].to_s.include?("template-plugin-kitchen-sink.yaml") }
+raise "demo missing kitchen-sink template location" unless ks_tpl
 puts "OK  app-config keys #{d.keys.size} (guest+mocked snyk+in-cluster tools)"
 RUBY
 
