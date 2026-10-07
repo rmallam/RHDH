@@ -68,6 +68,8 @@ grep -q "kind: ExternalSecret" "$DEMO" || { echo "FAIL demo missing ExternalSecr
 grep -q "kind: ExternalSecret" "$PROD" || { echo "FAIL production missing ExternalSecret"; fail=1; }
 grep -q "remoteRef:" "$DEMO" || { echo "FAIL demo ExternalSecret missing remoteRef"; fail=1; }
 grep -q "dangerouslyAllowOutsideDevelopment" "$DEMO" || { echo "FAIL demo missing guest provider"; fail=1; }
+grep -q "kubernetes.clusters.read" "$DEMO" || { echo "FAIL demo missing kubernetes.clusters.read"; fail=1; }
+grep -q "kubernetes.resources.read" "$DEMO" || { echo "FAIL demo missing kubernetes.resources.read"; fail=1; }
 grep -q "name: rhdh-demo-catalog" "$DEMO" || { echo "FAIL demo missing kitchen-sink ConfigMap"; fail=1; }
 grep -q "plugin-kitchen-sink" "$DEMO" || { echo "FAIL demo missing kitchen-sink entity"; fail=1; }
 grep -q "vault.io/secrets-path" "$DEMO" || { echo "FAIL demo missing vault annotation"; fail=1; }
