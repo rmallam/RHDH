@@ -94,6 +94,9 @@ catalog:
     clientSecret: "${AZURE_CLIENT_SECRET}"
     userFilter: "accountEnabled eq true"
     groupFilter: "securityEnabled eq true"
+  # Static Component with every plugin annotation. Off in customer values.
+  demoKitchenSink:
+    enabled: false
   locations:
     - type: url
       target: https://github.com/rmallam/RHDH-SM-DevSpaces/blob/main/golden-path/all-templates.yaml

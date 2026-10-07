@@ -53,3 +53,16 @@ spec:
                       resources:
                         requests:
                           storage: {{ .Values.instance.dynamicPluginsRoot.size }}
+              {{- if .Values.catalog.demoKitchenSink.enabled }}
+              - name: demo-catalog
+                configMap:
+                  name: rhdh-demo-catalog
+              {{- end }}
+            {{- if .Values.catalog.demoKitchenSink.enabled }}
+            containers:
+              - name: backstage-backend
+                volumeMounts:
+                  - name: demo-catalog
+                    mountPath: /opt/app-root/src/catalog-demo
+                    readOnly: true
+            {{- end }}
