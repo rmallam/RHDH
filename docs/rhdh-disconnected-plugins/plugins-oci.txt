@@ -1,0 +1,37 @@
+# ONLY the plugins that are NOT in the RHDH 1.10 image and must be copied.
+# Kubernetes, LDAP, TechDocs, RBAC, GitHub scaffolder, MS Graph stay bundled.
+#
+# Also mirror: oci://registry.access.redhat.com/rhdh/plugin-catalog-index:1.10
+
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-jenkins:bs_1.49.4__0.30.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-jenkins-backend:bs_1.49.4__0.27.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-tekton:bs_1.45.3__3.33.3
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-argo-cd-backend:bs_1.45.3__4.6.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-argocd:bs_1.45.3__2.4.4
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-scaffolder-backend-argocd:bs_1.45.3__1.8.1
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-sonarqube:bs_1.45.3__0.21.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-sonarqube-backend:bs_1.45.3__0.15.0
+# Snyk — no Red Hat overlay. Self-exported vendor plugin (backstage-plugin-snyk 2.5.10).
+oci://ghcr.io/rmallam/rhdh-plugin-snyk:bs_1.49.4__2.5.10
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-jira:bs_1.49.4__2.14.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-jfrog-artifactory:bs_1.49.4__1.28.0
+
+# HashiCorp Vault — LIST-only (WNZL req 43). Not in the RHDH 1.10 extras table;
+# confirm the tag with: skopeo list-tags docker://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault
+# Vault — no published bs_ tag on GHCR as of 2026-10-07 (pr_1225 only). Skip until a bs_ tag exists.
+# oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault:bs_1.49.4__0.31.0
+# oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault-backend:bs_1.49.4__0.31.0
+
+# ServiceNow — scaffolder actions (HLD §18) + entity UI. Tags from RHDH 1.10 docs.
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-scaffolder-backend-module-servicenow:bs_1.49.4__2.15.1
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-servicenow-backend:bs_1.49.4__1.10.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-servicenow:bs_1.49.4__1.10.0
+
+# Dynatrace APM card + DQL (HLD: DQL plugin)
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-dynatrace:bs_1.49.4__10.17.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/dynatrace-backstage-plugin-dql:bs_1.49.4__2.7.0
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/dynatrace-backstage-plugin-dql-backend:bs_1.49.4__2.7.0
+
+# IBM API Connect. IBM docs use a !subpath; quote this URL in shell.
+# oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/apic-backstage:bs_1.39.1__1.0.0!apic-backstage
+oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/apic-backstage:bs_1.49.4__1.0.3

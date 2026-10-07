@@ -1,0 +1,35 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: developer-hub
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: acme-platform
+    app.kubernetes.io/component: developer-hub
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rmallam/RHDH
+    targetRevision: main
+    path: charts/developer-hub
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-demo.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rhdh
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: rhdh.redhat.com
+      kind: Backstage
+      jqPathExpressions:
+        - .status

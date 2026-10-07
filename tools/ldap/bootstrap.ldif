@@ -1,0 +1,78 @@
+# Seeded after osixia creates dc=acme,dc=demo from LDAP_DOMAIN=acme.demo
+# Group cn values must match Entra security group names.
+
+dn: ou=people,dc=acme,dc=demo
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=acme,dc=demo
+objectClass: organizationalUnit
+ou: groups
+
+# --- people (mail local-part is what you recreate in Entra) ---
+
+dn: uid=alice,ou=people,dc=acme,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Alice Developer
+sn: Developer
+givenName: Alice
+uid: alice
+mail: mallamrakesh@gmail.com
+uidNumber: 10001
+gidNumber: 10000
+homeDirectory: /home/alice
+loginShell: /bin/bash
+userPassword: AliceDev1!
+
+dn: uid=bob,ou=people,dc=acme,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Bob Platform
+sn: Platform
+givenName: Bob
+uid: bob
+mail: bob@mallamrakeshgmail.onmicrosoft.com
+uidNumber: 10002
+gidNumber: 10000
+homeDirectory: /home/bob
+loginShell: /bin/bash
+userPassword: BobPlat1!
+
+dn: uid=carol,ou=people,dc=acme,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Carol Owner
+sn: Owner
+givenName: Carol
+uid: carol
+mail: carol@mallamrakeshgmail.onmicrosoft.com
+uidNumber: 10003
+gidNumber: 10000
+homeDirectory: /home/carol
+loginShell: /bin/bash
+userPassword: CarolApp1!
+
+# --- groups (create these exact names as Entra security groups) ---
+
+dn: cn=developers,ou=groups,dc=acme,dc=demo
+objectClass: groupOfNames
+cn: developers
+description: Application developers (maps to Entra group developers)
+member: uid=alice,ou=people,dc=acme,dc=demo
+
+dn: cn=platform-team,ou=groups,dc=acme,dc=demo
+objectClass: groupOfNames
+cn: platform-team
+description: Platform engineers (maps to Entra group platform-team)
+member: uid=bob,ou=people,dc=acme,dc=demo
+
+dn: cn=app-owners,ou=groups,dc=acme,dc=demo
+objectClass: groupOfNames
+cn: app-owners
+description: Application owners (maps to Entra group app-owners)
+member: uid=carol,ou=people,dc=acme,dc=demo
+member: uid=alice,ou=people,dc=acme,dc=demo

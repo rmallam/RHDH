@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas-stubs
+  namespace: saas-stubs
+  labels:
+    app.kubernetes.io/name: saas-stubs
+    app.kubernetes.io/part-of: acme-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: saas-stubs
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: saas-stubs
+    spec:
+      containers:
+        - name: stubs
+          image: registry.access.redhat.com/ubi9/python-312:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "/opt/app-root/src/server.py"]
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: stub
+              mountPath: /opt/app-root/src/server.py
+              subPath: server.py
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: stub
+          configMap:
+            name: saas-stubs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: saas-stubs
+  namespace: saas-stubs
+  labels:
+    app.kubernetes.io/name: saas-stubs
+spec:
+  selector:
+    app.kubernetes.io/name: saas-stubs
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: saas-stubs
+  namespace: saas-stubs
+  labels:
+    app.kubernetes.io/name: saas-stubs
+spec:
+  to:
+    kind: Service
+    name: saas-stubs
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

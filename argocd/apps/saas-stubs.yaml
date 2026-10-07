@@ -1,0 +1,25 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: saas-stubs
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: acme-platform
+    app.kubernetes.io/component: saas-stubs
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rmallam/RHDH
+    targetRevision: main
+    path: tools/saas-stubs/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: saas-stubs
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

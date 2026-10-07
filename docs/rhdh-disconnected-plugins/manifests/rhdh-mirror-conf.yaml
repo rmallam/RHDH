@@ -1,0 +1,34 @@
+# Mount into install-dynamic-plugins only. Kubelet ICSP/IDMS does not apply.
+# Replace registry.internal.example.com with the customer registry host.
+# Set insecure = true only for HTTP / lab registries.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhdh-mirror-conf
+  namespace: rhdh
+data:
+  rhdh-registries.conf: |
+    [[registry]]
+    prefix = "registry.access.redhat.com/rhdh"
+    location = "registry.internal.example.com/rhdh"
+    insecure = false
+
+    [[registry]]
+    prefix = "registry.redhat.io/rhdh"
+    location = "registry.internal.example.com/rhdh"
+    insecure = false
+
+    [[registry]]
+    prefix = "quay.io/rhdh"
+    location = "registry.internal.example.com/rhdh"
+    insecure = false
+
+    [[registry]]
+    prefix = "quay.io/rhdh-plugin-catalog"
+    location = "registry.internal.example.com/rhdh-plugin-catalog"
+    insecure = false
+
+    [[registry]]
+    prefix = "ghcr.io/redhat-developer/rhdh-plugin-export-overlays"
+    location = "registry.internal.example.com/rhdh-plugin-export-overlays"
+    insecure = false

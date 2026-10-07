@@ -1,0 +1,139 @@
+# ROSA demo overlay — matches the live developer-hub instance (guest + Entra + LDAP).
+# Secrets come from Vault via ExternalSecret (secrets.mode=eso).
+# Operator already lives in namespace rhdh-operator (cluster-wide CSV 1.10.4).
+operator:
+  enabled: false
+
+instance:
+  replicas: 1
+
+app:
+  title: ROSA Golden Path Demo
+  organization: Demo
+  clusterBaseDomain: apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com
+  baseUrl: https://backstage-developer-hub-rhdh.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com
+  readingAllow:
+    - host: github.com
+    - host: raw.githubusercontent.com
+    - host: api.github.com
+    - host: login.microsoftonline.com
+    - host: graph.microsoft.com
+    - host: app.snyk.io
+    - host: api.snyk.io
+    - host: bitbucket.org
+    - host: jenkins.jenkins.svc
+    - host: sonarqube.sonarqube.svc
+    - host: vault.vault.svc
+    - host: saas-stubs.saas-stubs.svc
+
+auth:
+  environment: development
+  signInPage:
+    - microsoft
+    - guest
+  guest:
+    enabled: true
+  microsoft:
+    domainHint: mallamrakeshgmail.onmicrosoft.com
+
+catalog:
+  locations:
+    - type: url
+      target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-node-udi-devspaces.yaml
+      allow: [Template]
+    - type: url
+      target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-start-feature-devspaces.yaml
+      allow: [Template]
+    - type: url
+      target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-open-devspaces-namespace.yaml
+      allow: [Template]
+
+permission:
+  adminUsers:
+    - name: user:default/bob
+    - name: user:default/guest
+  adminGroups: []
+  pluginsWithPermission:
+    - catalog
+    - scaffolder
+    - permission
+  policiesCsv: |
+    p, role:default/developer, catalog-entity, read, allow
+    p, role:default/developer, catalog.entity.create, create, allow
+    p, role:default/developer, catalog.entity.refresh, update, allow
+    p, role:default/developer, scaffolder.template.use, use, allow
+    p, role:default/developer, scaffolder.task.create, create, allow
+    p, role:default/developer, scaffolder.task.read, read, allow
+    p, role:default/developer, scaffolder.task.cancel, update, allow
+    g, group:default/developers, role:default/developer
+    g, group:default/app-owners, role:default/developer
+    g, group:default/platform-team, role:default/developer
+    g, user:default/guest, role:default/developer
+    g, user:default/alice, role:default/developer
+    g, user:default/bob, role:default/developer
+    g, user:default/carol, role:default/developer
+
+integrations:
+  bitbucketCloud:
+    enabled: true
+
+plugins:
+  kubernetes:
+    clusterName: rosa-89s85
+    url: https://kubernetes.default.svc
+    skipTLSVerify: true
+    serviceAccountToken: ""
+    caData: ""
+  jenkins:
+    instances:
+      - name: default
+        baseUrl: http://jenkins.jenkins.svc
+        username: "${JENKINS_USERNAME}"
+        apiKey: "${JENKINS_API_TOKEN}"
+    proxyTarget: http://jenkins.jenkins.svc
+    proxyAuth: "Basic ${JENKINS_BASIC_AUTH_B64}"
+  argocd:
+    instances:
+      - name: default
+        url: https://openshift-gitops-server-openshift-gitops.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com
+        token: "${ARGOCD_TOKEN}"
+  bitbucket:
+    enabled: true
+  apiDocs:
+    enabled: false
+  sonarqube:
+    baseUrl: http://sonarqube.sonarqube.svc:9000
+    apiKey: "${SONARQUBE_API_KEY}"
+  snyk:
+    mocked: true
+  jira:
+    baseUrl: http://saas-stubs.saas-stubs.svc:8080
+    token: "${JIRA_TOKEN}"
+  artifactory:
+    baseUrl: http://saas-stubs.saas-stubs.svc:8080
+    token: "${ARTIFACTORY_TOKEN}"
+  vault:
+    enabled: true
+    frontendPackage: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault:pr_1225__0.19.0
+    backendPackage: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault-backend:pr_1225__0.21.0
+    baseUrl: http://vault.vault.svc:8200
+    token: "${VAULT_TOKEN}"
+  servicenow:
+    baseUrl: http://saas-stubs.saas-stubs.svc:8080
+    username: "${SERVICENOW_USERNAME}"
+    password: "${SERVICENOW_PASSWORD}"
+  dynatrace:
+    url: http://saas-stubs.saas-stubs.svc:8080
+    tokenUrl: http://saas-stubs.saas-stubs.svc:8080
+    clientId: "${DYNATRACE_CLIENT_ID}"
+    clientSecret: "${DYNATRACE_CLIENT_SECRET}"
+    accountUrn: "${DYNATRACE_ACCOUNT_URN}"
+  apic:
+    url: http://saas-stubs.saas-stubs.svc:8080
+    clientId: "${APIC_CLIENT_ID}"
+    clientSecret: "${APIC_SECRET}"
+    apiKey: "${APIC_API_KEY}"
+    baseUrl: http://saas-stubs.saas-stubs.svc:8080
+
+secrets:
+  mode: eso

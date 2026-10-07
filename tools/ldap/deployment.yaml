@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+  namespace: ldap
+  labels:
+    app.kubernetes.io/name: openldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: openldap
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: openldap
+    spec:
+      serviceAccountName: openldap
+      containers:
+        - name: openldap
+          image: docker.io/osixia/openldap:1.5.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --copy-service
+          env:
+            - name: LDAP_ORGANISATION
+              value: Acme Demo
+            - name: LDAP_DOMAIN
+              value: acme.demo
+            - name: LDAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openldap-admin
+                  key: LDAP_ADMIN_PASSWORD
+            - name: LDAP_TLS
+              value: "false"
+            - name: LDAP_RFC2307BIS_SCHEMA
+              value: "true"
+          ports:
+            - name: ldap
+              containerPort: 389
+            - name: ldaps
+              containerPort: 636
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/ldap
+            - name: config
+              mountPath: /etc/ldap/slapd.d
+            - name: bootstrap
+              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom
+              readOnly: true
+          readinessProbe:
+            tcpSocket:
+              port: ldap
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: ldap
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 256Mi
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: config
+          emptyDir: {}
+        - name: bootstrap
+          configMap:
+            name: openldap-bootstrap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  namespace: ldap
+  labels:
+    app.kubernetes.io/name: openldap
+spec:
+  selector:
+    app.kubernetes.io/name: openldap
+  ports:
+    - name: ldap
+      port: 389
+      targetPort: ldap
+    - name: ldaps
+      port: 636
+      targetPort: ldaps

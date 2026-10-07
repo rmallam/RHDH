@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# Unit: helm lint + template. System: rendered YAML must include the WNZL plugin set
+# with live OCI pins and a valid Backstage CR.
+set -euo pipefail
+CHART="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$CHART/../.." && pwd)"
+need() { command -v "$1" >/dev/null || { echo "missing $1" >&2; exit 1; }; }
+need helm
+need ruby
+
+fail=0
+helm lint "$CHART"
+
+render() {
+  local out="$1"
+  shift
+  helm template rhdh "$CHART" --namespace rhdh "$@" >"$out"
+}
+
+PROD="$(mktemp)"
+DEMO="$(mktemp)"
+trap 'rm -f "$PROD" "$DEMO"' EXIT
+
+render "$PROD" -f "$CHART/values.yaml"
+render "$DEMO" -f "$CHART/values.yaml" -f "$CHART/values-demo.yaml"
+
+check_file() {
+  local file="$1" label="$2"
+  echo "== $label =="
+  for pat in \
+    "kind: Backstage" \
+    "dynamicPluginsConfigMapName: dynamic-plugins-rhdh" \
+    "name: rhdh-secrets" \
+    "storage: 8Gi" \
+    "backstage-community-plugin-jenkins" \
+    "backstage-plugin-catalog-backend-module-ldap-dynamic" \
+    "backstage-plugin-scaffolder-backend-module-github-dynamic" \
+    "backstage-plugin-kubernetes" \
+    "backstage-community-plugin-tekton" \
+    "backstage-community-plugin-argocd" \
+    "backstage-community-plugin-sonarqube" \
+    "rhdh-plugin-snyk" \
+    "roadiehq-backstage-plugin-jira" \
+    "backstage-community-plugin-jfrog-artifactory" \
+    "backstage-community-plugin-vault" \
+    "backstage-community-plugin-servicenow" \
+    "backstage-community-plugin-dynatrace" \
+    "apic-backstage" \
+    "backstage-plugin-techdocs" \
+    "bs_1.49.4__2.5.10" \
+    "rbac-policies.csv"
+  do
+    if grep -q "$pat" "$file"; then
+      echo "OK  $pat"
+    else
+      echo "FAIL missing $pat"
+      fail=1
+    fi
+  done
+}
+
+check_file "$PROD" "production"
+check_file "$DEMO" "demo"
+
+# Demo overlay: guest login + ESO (secrets live in Vault).
+grep -q "name: user:default/guest" "$DEMO" || { echo "FAIL demo missing guest admin object"; fail=1; }
+grep -q "kind: ExternalSecret" "$DEMO" || { echo "FAIL demo missing ExternalSecret"; fail=1; }
+grep -q "kind: ExternalSecret" "$PROD" || { echo "FAIL production missing ExternalSecret"; fail=1; }
+grep -q "remoteRef:" "$DEMO" || { echo "FAIL demo ExternalSecret missing remoteRef"; fail=1; }
+grep -q "dangerouslyAllowOutsideDevelopment" "$DEMO" || { echo "FAIL demo missing guest provider"; fail=1; }
+
+# Parse the generated dynamic-plugins.yaml out of the ConfigMap.
+ruby - "$DEMO" <<'RUBY'
+require "yaml"
+doc = File.read(ARGV[0])
+cm = doc.split(/^---\n/).find { |b| b.include?("name: dynamic-plugins-rhdh") && b.include?("dynamic-plugins.yaml:") }
+abort "no dynamic-plugins ConfigMap" unless cm
+# Helm indents the literal block 4 spaces under data:
+inner = cm[/dynamic-plugins\.yaml: \|\n(.*?)(\nkind: |\z)/m, 1]
+abort "empty plugin yaml" if inner.nil? || inner.strip.empty?
+unindented = inner.lines.map { |l| l.sub(/^    /, "") }.join
+d = YAML.safe_load(unindented)
+pkgs = (d["plugins"] || []).map { |p| p["package"] }
+raise "no plugins" if pkgs.empty?
+disabled = (d["plugins"] || []).select { |p| p["disabled"] == true }
+allowed = disabled.select { |p| p["package"].to_s.match?(/msgraph|keycloak/) }
+unless disabled == allowed
+  raise "unexpected disabled plugins: #{disabled.map { |p| p["package"] }}"
+end
+vault = pkgs.find { |p| p.to_s.include?("plugin-vault") }
+raise "vault package missing" unless vault
+raise "vault should be enabled" if d["plugins"].find { |p| p["package"] == vault }["disabled"]
+bb = pkgs.find { |p| p.to_s.include?("bitbucket-cloud") }
+raise "bitbucket package missing" unless bb
+raise "bitbucket should be enabled" if d["plugins"].find { |p| p["package"] == bb }["disabled"]
+oci = pkgs.select { |p| p.to_s.start_with?("oci://") }
+snyk = pkgs.find { |p| p.to_s.include?("rhdh-plugin-snyk") }
+raise "snyk package missing" unless snyk
+raise "snyk should be enabled" if d["plugins"].find { |p| p["package"] == snyk }["disabled"]
+puts "OK  #{pkgs.size} plugins (#{oci.size} OCI, #{disabled.size} disabled)"
+RUBY
+
+ruby - "$DEMO" <<'RUBY'
+require "yaml"
+doc = File.read(ARGV[0])
+cm = doc.split(/^---\n/).find { |b| b.include?("name: app-config-rhdh\n") && b.include?("app-config.yaml:") }
+abort "no app-config ConfigMap" unless cm
+inner = cm[/app-config\.yaml: \|\n(.*?)(\nkind: |\z)/m, 1]
+abort "empty app-config" if inner.nil? || inner.strip.empty?
+unindented = inner.lines.map { |l| l.sub(/^    /, "") }.join
+d = YAML.safe_load(unindented)
+%w[app auth catalog jenkins argocd kubernetes snyk permission].each do |k|
+  raise "missing app-config key #{k}" unless d.key?(k)
+end
+raise "guest missing" unless d.dig("auth", "providers", "guest")
+raise "snyk should be mocked in demo" unless d.dig("snyk", "mocked") == true
+jenkins_url = d.dig("jenkins", "instances", 0, "baseUrl")
+raise "demo jenkins url #{jenkins_url}" unless jenkins_url == "http://jenkins.jenkins.svc"
+sonar_url = d.dig("sonarqube", "baseUrl")
+raise "demo sonar url #{sonar_url}" unless sonar_url == "http://sonarqube.sonarqube.svc:9000"
+jira_url = d.dig("jira", "baseUrl")
+raise "demo jira url #{jira_url}" unless jira_url == "http://saas-stubs.saas-stubs.svc:8080"
+puts "OK  app-config keys #{d.keys.size} (guest+mocked snyk+in-cluster tools)"
+RUBY
+
+# No accidental live tokens in rendered YAML.
+if grep -E 'ghp_|gho_|sk-|sha256~' "$PROD" "$DEMO"; then
+  echo "FAIL rendered manifests look like they contain secrets"
+  fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "Helm chart tests failed"
+  exit 1
+fi
+echo "Helm chart tests passed"

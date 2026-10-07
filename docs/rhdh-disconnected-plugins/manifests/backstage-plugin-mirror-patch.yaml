@@ -1,0 +1,33 @@
+# Merge these fields into the live Backstage CR (do not apply as a second instance).
+# extraFiles entries are a list — keep rbac-policies from docs/rhdh-entra-ldap as well.
+apiVersion: rhdh.redhat.com/v1alpha5
+kind: Backstage
+metadata:
+  name: developer-hub
+  namespace: rhdh
+spec:
+  application:
+    dynamicPluginsConfigMapName: dynamic-plugins-rhdh
+    extraFiles:
+      mountPath: /opt/app-root/src
+      configMaps:
+        - name: rbac-policies
+        - name: rhdh-mirror-conf
+          key: rhdh-registries.conf
+          mountPath: /etc/containers/registries.conf.d
+          containers: [install-dynamic-plugins]
+      # Uncomment if the internal registry requires auth:
+      # secrets:
+      #   - name: internal-registry-auth
+      #     key: .dockerconfigjson
+      #     containers: [install-dynamic-plugins]
+    extraEnvs:
+      secrets:
+        - name: rhdh-secrets
+      # envs:
+      #   - name: REGISTRY_AUTH_FILE
+      #     value: /opt/app-root/src/.dockerconfigjson
+      #     containers: [install-dynamic-plugins]
+      #   - name: CATALOG_INDEX_IMAGE
+      #     value: registry.internal.example.com/rhdh/plugin-catalog-index:1.10
+      #     containers: [install-dynamic-plugins]
