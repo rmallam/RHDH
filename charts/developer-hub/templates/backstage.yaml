@@ -44,6 +44,10 @@ spec:
               app.kubernetes.io/name: backstage
               backstage.io/kubernetes-id: {{ include "rhdh.fullname" . }}
           spec:
+            # Operator defaults this to false; the Kubernetes/Topology plugins
+            # read /var/run/secrets/kubernetes.io/serviceaccount/token.
+            automountServiceAccountToken: true
+            serviceAccountName: {{ .Values.rbac.serviceAccount | quote }}
             volumes:
               - name: dynamic-plugins-root
                 ephemeral:
