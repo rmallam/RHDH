@@ -71,6 +71,7 @@ grep -q "dangerouslyAllowOutsideDevelopment" "$DEMO" || { echo "FAIL demo missin
 grep -q "kubernetes.clusters.read" "$DEMO" || { echo "FAIL demo missing kubernetes.clusters.read"; fail=1; }
 grep -q "kubernetes.resources.read" "$DEMO" || { echo "FAIL demo missing kubernetes.resources.read"; fail=1; }
 grep -q "automountServiceAccountToken: true" "$DEMO" || { echo "FAIL demo missing SA token automount"; fail=1; }
+grep -q "metrics.k8s.io" "$DEMO" || { echo "FAIL demo missing metrics.k8s.io ClusterRole"; fail=1; }
 grep -q "name: rhdh-demo-catalog" "$DEMO" || { echo "FAIL demo missing kitchen-sink ConfigMap"; fail=1; }
 grep -q "plugin-kitchen-sink" "$DEMO" || { echo "FAIL demo missing kitchen-sink entity"; fail=1; }
 grep -q "vault.io/secrets-path" "$DEMO" || { echo "FAIL demo missing vault annotation"; fail=1; }
