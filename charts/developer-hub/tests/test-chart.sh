@@ -68,6 +68,10 @@ grep -q "kind: ExternalSecret" "$DEMO" || { echo "FAIL demo missing ExternalSecr
 grep -q "kind: ExternalSecret" "$PROD" || { echo "FAIL production missing ExternalSecret"; fail=1; }
 grep -q "remoteRef:" "$DEMO" || { echo "FAIL demo ExternalSecret missing remoteRef"; fail=1; }
 grep -q "dangerouslyAllowOutsideDevelopment" "$DEMO" || { echo "FAIL demo missing guest provider"; fail=1; }
+grep -q "name: rhdh-demo-catalog" "$DEMO" || { echo "FAIL demo missing kitchen-sink ConfigMap"; fail=1; }
+grep -q "plugin-kitchen-sink" "$DEMO" || { echo "FAIL demo missing kitchen-sink entity"; fail=1; }
+grep -q "vault.io/secrets-path" "$DEMO" || { echo "FAIL demo missing vault annotation"; fail=1; }
+grep -q "name: rhdh-demo-catalog" "$PROD" && { echo "FAIL prod must not ship kitchen-sink ConfigMap"; fail=1; }
 
 # Parse the generated dynamic-plugins.yaml out of the ConfigMap.
 ruby - "$DEMO" <<'RUBY'
@@ -120,6 +124,9 @@ sonar_url = d.dig("sonarqube", "baseUrl")
 raise "demo sonar url #{sonar_url}" unless sonar_url == "http://sonarqube.sonarqube.svc:9000"
 jira_url = d.dig("jira", "baseUrl")
 raise "demo jira url #{jira_url}" unless jira_url == "http://saas-stubs.saas-stubs.svc:8080"
+locs = d.dig("catalog", "locations") || []
+file_loc = locs.find { |l| l["target"].to_s.include?("catalog-demo/catalog-info.yaml") }
+raise "demo missing kitchen-sink file location" unless file_loc
 puts "OK  app-config keys #{d.keys.size} (guest+mocked snyk+in-cluster tools)"
 RUBY
 

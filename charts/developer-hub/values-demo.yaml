@@ -37,6 +37,8 @@ auth:
     domainHint: mallamrakeshgmail.onmicrosoft.com
 
 catalog:
+  demoKitchenSink:
+    enabled: true
   locations:
     - type: url
       target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-node-udi-devspaces.yaml
@@ -47,6 +49,9 @@ catalog:
     - type: url
       target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-open-devspaces-namespace.yaml
       allow: [Template]
+    - type: file
+      target: /opt/app-root/src/catalog-demo/catalog-info.yaml
+      allow: [Component, System]
 
 permission:
   adminUsers:

@@ -1,0 +1,45 @@
+# Copy of charts/developer-hub/files/plugin-kitchen-sink.yaml for browsing.
+# Hub loads the Helm-mounted file, not this path.
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: plugin-kitchen-sink
+  description: Lab system for exercising RHDH plugin tabs
+  tags:
+    - demo
+    - plugins
+spec:
+  owner: group:default/developers
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: plugin-kitchen-sink
+  description: Open this entity to see Jenkins, Sonar, Argo, Vault, Jira, Snyk, and other plugin tabs
+  tags:
+    - demo
+    - plugins
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    jenkins.io/job-full-name: demo/plugin-kitchen-sink
+    sonarqube.org/project-key: demo-plugin-kitchen-sink
+    argocd/app-name: developer-hub
+    argocd/app-namespace: openshift-gitops
+    backstage.io/kubernetes-id: developer-hub
+    backstage.io/kubernetes-namespace: rhdh
+    vault.io/secrets-path: rhdh
+    jira/project-key: DEMO
+    jira/component: kitchen-sink
+    snyk.io/org-id: stub-org
+    snyk.io/org-name: stub-org
+    snyk.io/project-ids: stub
+    servicenow.com/entity-id: demo
+    jfrog-artifactory/image-name: plugin-kitchen-sink
+    dynatrace.com/dynatrace-entity-id: SERVICE-DEMO
+    github.com/project-slug: rmallam/RHDH
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/developers
+  system: plugin-kitchen-sink
