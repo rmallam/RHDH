@@ -1,0 +1,10 @@
+.DS_Store
+*.swp
+.env
+kubeconfig
+**/creds.txt
+demo/creds.txt
+.idea/
+.vscode/
+**/__pycache__/
+*.pyc

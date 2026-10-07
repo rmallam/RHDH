@@ -1,0 +1,205 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: 4m
+    template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+  labels:
+    app: jenkins-persistent
+    template: jenkins-persistent-template
+  name: jenkins
+spec:
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: jenkins
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: jenkins-persistent
+    config.openshift.io/inject-trusted-cabundle: 'true'
+    template: jenkins-persistent-template
+  name: jenkins-trusted-ca-bundle
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: jenkins-persistent
+    template: jenkins-persistent-template
+  name: jenkins
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    template.alpha.openshift.io/wait-for-ready: 'true'
+  labels:
+    app: jenkins-persistent
+    template: jenkins-persistent-template
+  name: jenkins
+spec:
+  replicas: 1
+  selector:
+    name: jenkins
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: jenkins
+    spec:
+      containers:
+      - capabilities: {}
+        env:
+        - name: OPENSHIFT_ENABLE_OAUTH
+          value: 'false'
+        - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+          value: 'true'
+        - name: DISABLE_ADMINISTRATIVE_MONITORS
+          value: 'false'
+        - name: KUBERNETES_MASTER
+          value: https://kubernetes.default:443
+        - name: KUBERNETES_TRUST_CERTIFICATES
+          value: 'true'
+        - name: JENKINS_SERVICE_NAME
+          value: jenkins
+        - name: JNLP_SERVICE_NAME
+          value: jenkins-jnlp
+        - name: ENABLE_FATAL_ERROR_LOG_FILE
+          value: 'false'
+        - name: JENKINS_UC_INSECURE
+          value: 'false'
+        - name: CASC_JENKINS_CONFIG
+          value: "/var/lib/jenkins/proxy.yaml"
+        - name: JAVA_FIPS_OPTIONS
+          value: "-Dcom.redhat.fips=false"
+        image: " "
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 2
+          httpGet:
+            path: "/login"
+            port: 8080
+          initialDelaySeconds: 420
+          periodSeconds: 360
+          timeoutSeconds: 240
+        name: jenkins
+        readinessProbe:
+          httpGet:
+            path: "/login"
+            port: 8080
+          initialDelaySeconds: 3
+          timeoutSeconds: 240
+        resources:
+          limits:
+            memory: 2Gi
+        securityContext:
+          capabilities: {}
+          privileged: false
+        terminationMessagePath: "/dev/termination-log"
+        volumeMounts:
+        - mountPath: "/var/lib/jenkins"
+          name: jenkins-data
+        - mountPath: "/etc/pki/ca-trust/source/anchors"
+          name: jenkins-trusted-ca-bundle
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: jenkins
+      volumes:
+      - name: jenkins-data
+        persistentVolumeClaim:
+          claimName: jenkins
+      - configMap:
+          name: jenkins-trusted-ca-bundle
+          optional: true
+        name: jenkins-trusted-ca-bundle
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - jenkins
+      from:
+        kind: ImageStreamTag
+        name: jenkins:2
+        namespace: openshift
+      lastTriggeredImage: ''
+    type: ImageChange
+  - type: ConfigChange
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.jenkins: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"jenkins"}}'
+  labels:
+    app: jenkins-persistent
+    template: jenkins-persistent-template
+  name: jenkins
+---
+apiVersion: authorization.openshift.io/v1
+groupNames: 
+kind: RoleBinding
+metadata:
+  labels:
+    app: jenkins-persistent
+    template: jenkins-persistent-template
+  name: jenkins_edit
+roleRef:
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: jenkins
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jenkins-persistent
+    template: jenkins-persistent-template
+  name: jenkins-jnlp
+spec:
+  ports:
+  - name: agent
+    nodePort: 0
+    port: 50000
+    protocol: TCP
+    targetPort: 50000
+  selector:
+    name: jenkins
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.openshift.io/dependencies: '[{"name": "jenkins-jnlp", "namespace":
+      "", "kind": "Service"}]'
+    service.openshift.io/infrastructure: 'true'
+  labels:
+    app: jenkins-persistent
+    template: jenkins-persistent-template
+  name: jenkins
+spec:
+  ports:
+  - name: web
+    nodePort: 0
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: jenkins
+  sessionAffinity: None
+  type: ClusterIP

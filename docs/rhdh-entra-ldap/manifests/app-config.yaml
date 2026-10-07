@@ -1,0 +1,100 @@
+# Customer RHDH app-config: Entra Microsoft login + LDAP catalog/authz.
+# Replace every REPLACE_* / CLUSTER_DOMAIN / customer.example.com value.
+app:
+  title: Developer Hub
+  baseUrl: https://backstage.apps.CLUSTER_DOMAIN
+organization:
+  name: REPLACE_ORG_NAME
+backend:
+  baseUrl: https://backstage.apps.CLUSTER_DOMAIN
+  listen:
+    port: 7007
+    host: 0.0.0.0
+  cors:
+    origin: https://backstage.apps.CLUSTER_DOMAIN
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  csp:
+    upgrade-insecure-requests: false
+  reading:
+    allow:
+      - host: login.microsoftonline.com
+      - host: graph.microsoft.com
+      - host: github.com
+      - host: raw.githubusercontent.com
+      - host: api.github.com
+signInPage: microsoft
+auth:
+  environment: production
+  session:
+    secret: ${BACKEND_SECRET}
+  providers:
+    microsoft:
+      production:
+        clientId: ${AZURE_CLIENT_ID}
+        clientSecret: ${AZURE_CLIENT_SECRET}
+        tenantId: ${AZURE_TENANT_ID}
+        domainHint: customer.example.com
+        signIn:
+          resolvers:
+            - resolver: emailMatchingUserEntityProfileEmail
+              # Turn this off once every Entra user exists in LDAP with matching mail.
+              dangerouslyAllowSignInWithoutUserInCatalog: true
+            - resolver: emailLocalPartMatchingUserEntityName
+              dangerouslyAllowSignInWithoutUserInCatalog: true
+# Optional — only if golden-path / scaffolder publishes to GitHub.
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+catalog:
+  rules:
+    - allow: [Component, System, API, Group, User, Resource, Location, Template]
+  providers:
+    ldapOrg:
+      default:
+        target: ldaps://ldap.customer.example.com:636
+        bind:
+          dn: cn=svc-rhdh,ou=service-accounts,dc=customer,dc=example
+          secret: ${LDAP_BIND_PASSWORD}
+        schedule:
+          frequency: { minutes: 5 }
+          timeout: { minutes: 2 }
+          initialDelay: { seconds: 15 }
+        users:
+          - dn: ou=people,dc=customer,dc=example
+            options:
+              filter: (objectClass=inetOrgPerson)
+              paged: true
+            map:
+              rdn: uid
+              name: uid
+              displayName: cn
+              email: mail
+            set:
+              metadata.namespace: default
+        groups:
+          - dn: ou=groups,dc=customer,dc=example
+            options:
+              filter: (objectClass=groupOfNames)
+              paged: true
+            map:
+              rdn: cn
+              name: cn
+              description: description
+              displayName: cn
+              members: member
+            set:
+              metadata.namespace: default
+permission:
+  enabled: true
+  rbac:
+    admin:
+      users:
+        - name: user:default/REPLACE_ADMIN_UID
+    pluginsWithPermission:
+      - catalog
+      - scaffolder
+      - permission
+    policies-csv-file: /opt/app-root/src/rbac-policies.csv
+    policyFileReload: true

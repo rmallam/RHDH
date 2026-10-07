@@ -1,0 +1,25 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: acme-platform
+    app.kubernetes.io/component: jenkins
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rmallam/RHDH
+    targetRevision: main
+    path: tools/jenkins/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jenkins
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

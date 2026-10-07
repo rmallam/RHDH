@@ -1,0 +1,164 @@
+app:
+  title: ROSA Golden Path Demo
+  baseUrl: https://backstage-developer-hub-rhdh.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com
+organization:
+  name: Demo
+backend:
+  baseUrl: https://backstage-developer-hub-rhdh.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com
+  listen:
+    port: 7007
+    host: 0.0.0.0
+  cors:
+    origin: https://backstage-developer-hub-rhdh.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  csp:
+    upgrade-insecure-requests: false
+  reading:
+    allow:
+      - host: github.com
+      - host: raw.githubusercontent.com
+      - host: api.github.com
+      - host: login.microsoftonline.com
+      - host: graph.microsoft.com
+      - host: app.snyk.io
+      - host: api.snyk.io
+signInPage:
+  - microsoft
+  - guest
+auth:
+  environment: development
+  session:
+    secret: ${BACKEND_SECRET}
+  providers:
+    guest:
+      userEntityRef: user:default/guest
+      dangerouslyAllowOutsideDevelopment: true
+    microsoft:
+      development:
+        clientId: ${AZURE_CLIENT_ID}
+        clientSecret: ${AZURE_CLIENT_SECRET}
+        tenantId: ${AZURE_TENANT_ID}
+        domainHint: mallamrakeshgmail.onmicrosoft.com
+        signIn:
+          resolvers:
+            # Do not set dangerouslyAllow on the first resolver — a miss must
+            # fall through. Alice's Entra UPN is alice@… but LDAP mail is Gmail.
+            - resolver: emailMatchingUserEntityProfileEmail
+            - resolver: emailLocalPartMatchingUserEntityName
+              dangerouslyAllowSignInWithoutUserInCatalog: true
+      production:
+        clientId: ${AZURE_CLIENT_ID}
+        clientSecret: ${AZURE_CLIENT_SECRET}
+        tenantId: ${AZURE_TENANT_ID}
+        domainHint: mallamrakeshgmail.onmicrosoft.com
+        signIn:
+          resolvers:
+            - resolver: emailMatchingUserEntityProfileEmail
+            - resolver: emailLocalPartMatchingUserEntityName
+              dangerouslyAllowSignInWithoutUserInCatalog: true
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+catalog:
+  rules:
+    - allow: [Component, System, API, Group, User, Resource, Location, Template]
+  providers:
+    ldapOrg:
+      default:
+        target: ldap://openldap.ldap.svc.cluster.local:389
+        bind:
+          dn: cn=admin,dc=acme,dc=demo
+          secret: ${LDAP_BIND_PASSWORD}
+        schedule:
+          frequency: { minutes: 5 }
+          timeout: { minutes: 2 }
+          initialDelay: { seconds: 15 }
+        users:
+          - dn: ou=people,dc=acme,dc=demo
+            options:
+              filter: (objectClass=inetOrgPerson)
+              paged: true
+            map:
+              rdn: uid
+              name: uid
+              displayName: cn
+              email: mail
+            set:
+              metadata.namespace: default
+        groups:
+          - dn: ou=groups,dc=acme,dc=demo
+            options:
+              filter: (objectClass=groupOfNames)
+              paged: true
+            map:
+              rdn: cn
+              name: cn
+              description: description
+              displayName: cn
+              members: member
+            set:
+              metadata.namespace: default
+  locations:
+    - type: url
+      target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-node-udi-devspaces.yaml
+      rules:
+        - allow: [Template]
+    - type: url
+      target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-start-feature-devspaces.yaml
+      rules:
+        - allow: [Template]
+    - type: url
+      target: https://raw.githubusercontent.com/rmallam/RHDH-SM-DevSpaces/refs/heads/demo/udi-devspaces/golden-path/demo/template-open-devspaces-namespace.yaml
+      rules:
+        - allow: [Template]
+# Stubs so plugins start before the real tools exist. Replace when we install each tool.
+jenkins:
+  instances:
+    - name: default
+      baseUrl: https://jenkins.example.invalid
+      username: placeholder
+      apiKey: placeholder
+argocd:
+  appLocatorMethods:
+    - type: config
+      instances:
+        - name: default
+          url: https://argocd.example.invalid
+          token: placeholder
+kubernetes:
+  serviceLocatorMethod:
+    type: multiTenant
+  clusterLocatorMethods:
+    - type: config
+      clusters:
+        - name: rosa-89s85
+          url: https://kubernetes.default.svc
+          authProvider: serviceAccount
+          skipTLSVerify: true
+snyk:
+  mocked: true
+  appHost: https://app.snyk.io
+proxy:
+  endpoints:
+    /snyk:
+      target: https://api.snyk.io
+      changeOrigin: true
+      headers:
+        Authorization: token ${SNYK_TOKEN}
+        Content-Type: application/json
+      allowedMethods: [GET]
+permission:
+  enabled: true
+  rbac:
+    admin:
+      users:
+        - name: user:default/bob
+        - name: user:default/guest
+    pluginsWithPermission:
+      - catalog
+      - scaffolder
+      - permission
+    policies-csv-file: /opt/app-root/src/rbac-policies.csv
+    policyFileReload: true

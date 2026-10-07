@@ -1,0 +1,8 @@
+includes:
+  - dynamic-plugins.default.yaml
+plugins:
+  - package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-ldap-dynamic
+    disabled: false
+  # Optional — golden-path publish:github
+  - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-github-dynamic
+    disabled: false

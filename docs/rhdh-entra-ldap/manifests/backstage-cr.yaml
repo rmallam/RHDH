@@ -1,0 +1,24 @@
+# Minimal Backstage CR fields required for Entra login + LDAP authz.
+# If a CR already exists, merge these spec.application fields into it
+# instead of applying a second CR (name must match the live instance).
+apiVersion: rhdh.redhat.com/v1alpha5
+kind: Backstage
+metadata:
+  name: developer-hub
+  namespace: rhdh
+spec:
+  application:
+    appConfig:
+      configMaps:
+        - name: app-config-rhdh
+      mountPath: /opt/app-root/src
+    dynamicPluginsConfigMapName: dynamic-plugins-rhdh
+    extraEnvs:
+      secrets:
+        - name: rhdh-secrets
+    extraFiles:
+      mountPath: /opt/app-root/src
+      configMaps:
+        - name: rbac-policies
+    route:
+      enabled: true

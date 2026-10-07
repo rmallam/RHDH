@@ -1,0 +1,25 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: acme-platform
+    app.kubernetes.io/component: vault
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rmallam/RHDH
+    targetRevision: main
+    path: tools/vault/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
