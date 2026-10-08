@@ -47,7 +47,7 @@ spec:
             allowedKinds: [System]
         backendService:
           title: Backend service
-          description: Component (spec.type: service) this website depends on.
+          description: "Component (spec.type: service) this website depends on."
           type: string
           ui:field: EntityPicker
           ui:options:
