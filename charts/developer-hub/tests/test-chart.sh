@@ -72,6 +72,12 @@ grep -q "kubernetes.clusters.read" "$DEMO" || { echo "FAIL demo missing kubernet
 grep -q "kubernetes.resources.read" "$DEMO" || { echo "FAIL demo missing kubernetes.resources.read"; fail=1; }
 grep -q "automountServiceAccountToken: true" "$DEMO" || { echo "FAIL demo missing SA token automount"; fail=1; }
 grep -q "metrics.k8s.io" "$DEMO" || { echo "FAIL demo missing metrics.k8s.io ClusterRole"; fail=1; }
+grep -q "enableLocalDb: false" "$DEMO" || { echo "FAIL demo must disable bundled Postgres"; fail=1; }
+grep -q "postgresql.cnpg.io/v1" "$DEMO" || { echo "FAIL demo missing CNPG Cluster"; fail=1; }
+grep -q "name: rhdh-pg" "$DEMO" || { echo "FAIL demo missing rhdh-pg cluster"; fail=1; }
+grep -q "POSTGRES_HOST" "$DEMO" || { echo "FAIL demo missing POSTGRES_HOST env"; fail=1; }
+grep -q "enableLocalDb: true" "$PROD" || { echo "FAIL prod default should keep local DB unless CNPG is on"; fail=1; }
+grep -q "postgresql.cnpg.io/v1" "$PROD" && { echo "FAIL prod must not emit CNPG Cluster by default"; fail=1; }
 grep -q "name: rhdh-demo-catalog" "$DEMO" || { echo "FAIL demo missing kitchen-sink ConfigMap"; fail=1; }
 grep -q "plugin-kitchen-sink" "$DEMO" || { echo "FAIL demo missing kitchen-sink entity"; fail=1; }
 grep -q "vault.io/secrets-path" "$DEMO" || { echo "FAIL demo missing vault annotation"; fail=1; }
@@ -133,6 +139,9 @@ file_loc = locs.find { |l| l["target"].to_s.include?("catalog-demo/catalog-info.
 raise "demo missing kitchen-sink file location" unless file_loc
 ks_tpl = locs.find { |l| l["target"].to_s.include?("template-plugin-kitchen-sink.yaml") }
 raise "demo missing kitchen-sink template location" unless ks_tpl
+db = d.dig("backend", "database") || {}
+raise "demo missing backend.database.client pg" unless db["client"] == "pg"
+raise "demo missing pluginDivisionMode schema" unless db["pluginDivisionMode"] == "schema"
 puts "OK  app-config keys #{d.keys.size} (guest+mocked snyk+in-cluster tools)"
 RUBY
 

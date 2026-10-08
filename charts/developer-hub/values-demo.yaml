@@ -6,6 +6,16 @@ operator:
 
 instance:
   replicas: 1
+  database:
+    enableLocalDb: false
+
+database:
+  cnpg:
+    enabled: true
+    instances: 1
+    storage: 10Gi
+  external:
+    enabled: true
 
 app:
   title: ROSA Golden Path Demo
@@ -52,6 +62,9 @@ catalog:
     - type: url
       target: https://raw.githubusercontent.com/rmallam/RHDH/refs/heads/main/golden-path/demo/template-plugin-kitchen-sink.yaml
       allow: [Template]
+    - type: url
+      target: https://github.com/rmallam/demo-ks-plugins/blob/main/catalog-info.yaml
+      allow: [Component]
     - type: file
       target: /opt/app-root/src/catalog-demo/catalog-info.yaml
       allow: [Component, System]

@@ -20,6 +20,7 @@ instance:
   route:
     enabled: true
   database:
+    # false when database.external.enabled — RHDH talks to CNPG instead.
     enableLocalDb: true
   extraEnvs:
     nodeTlsRejectUnauthorized: "0"
@@ -158,6 +159,29 @@ branding:
   primaryColor: "#D5002B"
   headerColor1: "#D5002B"
   headerColor2: "#8B0019"
+
+# CloudNativePG Cluster (operator is installed separately — components/cnpg).
+# When external.enabled, Hub reads POSTGRES_* from the CNPG app Secret.
+database:
+  cnpg:
+    enabled: false
+    name: rhdh-pg
+    instances: 2
+    storage: 20Gi
+    storageClass: ""
+    imageName: ""
+    maxConnections: "200"
+  external:
+    enabled: false
+    secretName: rhdh-pg-app
+    keys:
+      host: host
+      port: port
+      user: username
+      password: password
+      database: dbname
+    ssl:
+      rejectUnauthorized: false
 
 # ── Dynamic plugins (RHDH 1.10 / Backstage 1.49.4 pins) ─────────────────────
 # enabled=false still ships the package as disabled:true so flipping the flag

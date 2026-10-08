@@ -14,7 +14,8 @@ Nothing in `charts/` is committed or pushed until you ask. The live ROSA instanc
 | Microsoft Entra **login** (`auth.providers.microsoft`) | Entra **app registration** in Azure Portal (you create this) |
 | LDAP org catalog (`catalog.providers.ldapOrg`) | OpenLDAP deployment (`demo/ldap/` is separate) |
 | Sign-in resolvers (email → LDAP user, then local-part fallback) | Secret values (`AZURE_*`, `LDAP_BIND_PASSWORD`, …) |
-| Plugin enable flags + OCI pins (Jenkins, Argo, Snyk, Jira, …) | Bitbucket **tool**; Vault **plugin** (no GA `bs_` overlay yet) |
+| Plugin enable flags + OCI pins (Jenkins, Argo, Snyk, Jira, Vault, …) | Bitbucket **SaaS** (overlay module still broken) |
+| CNPG `Cluster` + Hub `backend.database` | CNPG **operator** (`components/cnpg`, ns `cnpg-system`) |
 | Guest login (demo overlay only) | Istio/mesh CRs (`components/developer-hub/base/service-mesh`) |
 
 MS Graph **catalog sync** (`plugins.msgraph` / `catalog.msgraph`) is **off** by default. Identities come from LDAP; Entra is the login provider. Turn Graph on only when you have tenant-wide User.Read.All and want Entra groups in the catalog.
@@ -24,7 +25,7 @@ MS Graph **catalog sync** (`plugins.msgraph` / `catalog.msgraph`) is **off** by 
 | File | Role |
 |---|---|
 | `values.yaml` | Customer defaults: Entra + LDAP, ESO secrets, production `signInPage` |
-| `values-demo.yaml` | ROSA lab: guest + Entra, stub tool URLs, `secrets.mode: external`, `operator.enabled: false` |
+| `values-demo.yaml` | ROSA lab: guest + Entra, CNPG, ESO secrets, `operator.enabled: false` |
 | `argocd/apps/developer-hub.yaml` | Argo CD → Helm + `values.yaml` |
 | `argocd/apps/developer-hub-demo.yaml` | Argo CD → Helm + demo overlay |
 
@@ -157,13 +158,17 @@ Admins must be objects (`name: user:default/bob`), not bare strings. Bind LDAP u
 ## 2. Apply
 
 ```bash
-# Lab / this ROSA cluster (does not touch rhdh-secrets or the operator)
+# 1) CNPG operator (once per cluster) — see docs/rhdh-cnpg/README.md
+oc apply -k components/cnpg/base
+
+# 2) Lab / this ROSA cluster (does not touch the RHDH operator Subscription)
 helm upgrade --install rhdh charts/developer-hub -n rhdh \
   --take-ownership --force-conflicts \
   -f charts/developer-hub/values.yaml \
   -f charts/developer-hub/values-demo.yaml
 
 charts/developer-hub/tests/test-chart.sh
+components/cnpg/tests/test-manifests.sh
 ```
 
 After Entra secret or `domainHint` / `baseUrl` changes, users must **sign out and sign in again** so resolvers re-run.
@@ -175,6 +180,12 @@ After Entra secret or `domainHint` / `baseUrl` changes, users must **sign out an
 3. LDAP user `mail` matches the Entra profile email (or local-part matches `uid`)
 4. Sign out completely (or private window) — old sessions may still be `user:default/alice@…`
 5. Guest templates are owned by `user:default/guest`; Microsoft users see them only if RBAC allows (developer role in the CSV)
+
+## Database (CloudNativePG)
+
+The bundled `backstage-psql-*` pod is **not** the customer target. Operator install is separate (`components/cnpg`); the Helm chart owns the `Cluster` and points the Backstage CR at it.
+
+Full reuse playbook (pins, values, secret map, install order, verify): [docs/rhdh-cnpg/README.md](../../docs/rhdh-cnpg/README.md). Demo overlay: `enableLocalDb: false`, Cluster `rhdh-pg`, credentials from Secret `rhdh-pg-app`.
 
 ## Plugin runbooks
 
