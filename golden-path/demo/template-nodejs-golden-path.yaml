@@ -84,20 +84,46 @@ spec:
         catalogInfoPath: /catalog-info.yaml
   output:
     text:
-      - title: Next
+      - title: What was created
         content: |
-          Repo: ${{ steps['publish'].output.remoteUrl }}
-          Jenkinsfile stages: lint → test → SonarQube → Helm lint.
-          Deploy: helm upgrade --install ${{ parameters.appName }} chart -n ${{ parameters.targetNamespace }}
-          Dev Spaces: ${{ parameters.devSpacesBaseUrl }}/f?url=${{ steps['publish'].output.remoteUrl }}&new
-          Create a Jenkins job named demo/${{ parameters.appName }} pointing at this repo.
+          **GitHub repository:** https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}
+
+          `publish:github` created that public repo on `main` and pushed the skeleton.
+          Catalog entity: `${{ steps['register'].output.entityRef }}`
+
+          | In Git | Path |
+          |---|---|
+          | catalog-info.yaml | `/catalog-info.yaml` |
+          | Devfile | `/devfile.yaml` |
+          | Helm chart | `/chart` |
+          | Jenkinsfile | `/Jenkinsfile` |
+          | Sonar properties | `/sonar-project.properties` |
+
+          **Not created automatically:** Jenkins job `demo/${{ parameters.appName }}`,
+          Helm release, Argo CD Application, Sonar project, or OpenShift namespace
+          `${{ parameters.targetNamespace }}` (it must already exist).
     links:
-      - title: Source repository
-        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: GitHub repository
+        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}
         icon: github
-      - title: Open in Dev Spaces
-        url: ${{ parameters.devSpacesBaseUrl }}/f?url=${{ steps['publish'].output.remoteUrl }}&new
-        icon: catalog
+      - title: catalog-info.yaml
+        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}/blob/main/catalog-info.yaml
+        icon: github
+      - title: Helm chart
+        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}/tree/main/chart
+        icon: github
+      - title: Jenkinsfile
+        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}/blob/main/Jenkinsfile
+        icon: github
       - title: Open in catalog
         icon: catalog
         entityRef: ${{ steps['register'].output.entityRef }}
+      - title: Open in Dev Spaces
+        url: ${{ parameters.devSpacesBaseUrl }}#https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}?new&devfilePath=devfile.yaml
+        icon: catalog
+      - title: Dev Spaces dashboard
+        url: ${{ parameters.devSpacesBaseUrl }}/dashboard/#/workspaces
+        icon: catalog
+      - title: OpenShift project
+        url: https://console-openshift-console.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/k8s/cluster/projects/${{ parameters.targetNamespace }}
+        icon: catalog

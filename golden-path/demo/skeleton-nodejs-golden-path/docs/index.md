@@ -18,4 +18,4 @@ The chart labels pods `backstage.io/kubernetes-id=${{ values.appName }}` for Top
 
 ## Dev Spaces
 
-${{ values.devSpacesBaseUrl }}/f?url=https://github.com/${{ values.githubOwner }}/${{ values.appName }}&new
+${{ values.devSpacesBaseUrl }}#https://github.com/${{ values.githubOwner }}/${{ values.appName }}?new&devfilePath=devfile.yaml

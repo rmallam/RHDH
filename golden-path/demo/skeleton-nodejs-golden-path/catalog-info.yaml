@@ -29,7 +29,7 @@ metadata:
     acme.io/devfile-path: devfile.yaml
     acme.io/helm-chart: chart
     acme.io/devspaces-url: ${{ values.devSpacesBaseUrl }}
-    acme.io/devspaces-factory-url: ${{ values.devSpacesBaseUrl }}/f?url=https://github.com/${{ values.githubOwner }}/${{ values.appName }}&new
+    acme.io/devspaces-factory-url: ${{ values.devSpacesBaseUrl }}#https://github.com/${{ values.githubOwner }}/${{ values.appName }}?new&devfilePath=devfile.yaml
 spec:
   type: service
   lifecycle: experimental

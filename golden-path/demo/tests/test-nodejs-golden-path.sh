@@ -17,6 +17,11 @@ T="$DIR/template-nodejs-golden-path.yaml"
 S="$DIR/skeleton-nodejs-golden-path"
 need "name: acme-nodejs-golden-path" "$T"
 need "publish:github" "$T"
+need "title: GitHub repository" "$T"
+need "#https://github.com" "$T"
+need "title: Helm chart" "$T"
+need "title: Jenkinsfile" "$T"
+need "title: OpenShift project" "$T"
 need "skeleton-nodejs-golden-path" "$T"
 need "template-nodejs-golden-path.yaml" "$DIR/location.yaml"
 need "stage('SonarQube')" "$S/Jenkinsfile"
@@ -32,6 +37,10 @@ need "acme.io/devspaces-factory-url" "$S/catalog-info.yaml"
 
 if grep -q "publish:bitbucket" "$T"; then
   echo "FAIL template publishes to Bitbucket"
+  fail=1
+fi
+if grep -q "/f?url=" "$T"; then
+  echo "FAIL template still uses Dev Spaces /f factory path (404 on this cluster)"
   fail=1
 fi
 
