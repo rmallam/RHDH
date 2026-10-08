@@ -12,7 +12,7 @@
 | Package | in-tree `scaffolder-backend-module-github` |
 | Integrations | `integrations.github.token` |
 | Reading allow | `github.com`, `raw.githubusercontent.com`, `api.github.com` |
-| RHDH CSV | `scaffolder.template.use`, `scaffolder.template.parameter.read`, `scaffolder.template.step.read`, `scaffolder.action.execute`, `scaffolder.task.create/read/cancel` |
+| RHDH CSV | `scaffolder.template.use`, `scaffolder.template.parameter.read`, `scaffolder.template.step.read`, `scaffolder.action.execute`, `scaffolder.task.create/read/cancel`, `catalog.location.create` |
 
 ## Secrets
 
