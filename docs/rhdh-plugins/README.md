@@ -29,7 +29,7 @@ What each Developer Hub plugin needs to light up, on this ROSA lab and in a cust
 | [techdocs](techdocs.md) | working | `backstage.io/techdocs-ref` | Local builder; needs `mkdocs.yml` |
 | [tekton](tekton.md) | partial | same `kubernetes-id` + PipelineRuns | No Pipelines operator on this lab |
 | [notifications](notifications.md) | working | none | In-product inbox |
-| [github-scaffolder](github-scaffolder.md) | working | template `publish:github` | `GITHUB_TOKEN` in Vault |
+| [github-scaffolder](github-scaffolder.md) | working | template `publish:github` | `GITHUB_TOKEN` in Vault. After a template Git push, [force catalog refresh](../rhdh-catalog-refresh/README.md) |
 | [bitbucket](bitbucket.md) | broken | integrations + catalog/scaffolder modules | Missing `@backstage/plugin-bitbucket-cloud-common` |
 | [ldap](ldap.md) | working | catalog provider | Join key = email |
 | [microsoft-auth](microsoft-auth.md) | working | sign-in | Entra; not a software-catalog tab |
