@@ -20,8 +20,11 @@
 
 Demo templates publish public repos under `rmallam`. Token lives in Vault → `rhdh-secrets`.
 
+After you push `golden-path/demo/template-*.yaml`, Hub does not pick it up until the catalog Location is refreshed. There is no Refresh on the Create wizard — see [Force a Hub catalog refresh](../rhdh-catalog-refresh/README.md).
+
 ## Known issues
 
 | When | Error | Fix |
 |---|---|---|
 | earlier | `defaultBranch` rejected | Use `defaultBranch` (this RHDH build accepts it) on `publish:github` |
+| 2026-10-08 | No Refresh on Create after a template Git push | `POST /api/catalog/refresh` on the Location + Template ([runbook](../rhdh-catalog-refresh/README.md)) |
