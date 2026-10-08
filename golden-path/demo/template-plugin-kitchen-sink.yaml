@@ -77,21 +77,31 @@ spec:
         catalogInfoPath: /catalog-info.yaml
   output:
     text:
-      - title: Dev Spaces
+      - title: What was created
         content: |
-          Open Dev Spaces and create a workspace from the new repo:
-          ${{ parameters.devSpacesBaseUrl }}/f?url=${{ steps['publish'].output.remoteUrl }}&new
+          **GitHub repository:** https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}
 
-          Plugin runbooks: docs/rhdh-plugins/README.md in the platform repo.
-          Topology looks for label backstage.io/kubernetes-id=${{ parameters.appName }}
-          in namespace ${{ parameters.targetNamespace }}.
+          `publish:github` created that public repo on `main` and pushed the kitchen-sink skeleton.
+          Catalog entity: `${{ steps['register'].output.entityRef }}`
+
+          Topology looks for label `backstage.io/kubernetes-id=${{ parameters.appName }}`
+          in namespace `${{ parameters.targetNamespace }}` (namespace is not created by this template).
     links:
-      - title: Source repository
-        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: GitHub repository
+        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}
         icon: github
-      - title: Open in Dev Spaces
-        url: ${{ parameters.devSpacesBaseUrl }}/f?url=${{ steps['publish'].output.remoteUrl }}&new
-        icon: catalog
+      - title: catalog-info.yaml
+        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}/blob/main/catalog-info.yaml
+        icon: github
       - title: Open in catalog
         icon: catalog
         entityRef: ${{ steps['register'].output.entityRef }}
+      - title: Open in Dev Spaces
+        url: ${{ parameters.devSpacesBaseUrl }}#https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}?new&devfilePath=devfile.yaml
+        icon: catalog
+      - title: Dev Spaces dashboard
+        url: ${{ parameters.devSpacesBaseUrl }}/dashboard/#/workspaces
+        icon: catalog
+      - title: OpenShift project
+        url: https://console-openshift-console.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/k8s/cluster/projects/${{ parameters.targetNamespace }}
+        icon: catalog
