@@ -21,7 +21,7 @@ spec:
   type: service
   parameters:
     - title: Application
-      required: [appName]
+      required: [appName, githubOwner]
       properties:
         appName:
           title: Application Name
@@ -33,9 +33,10 @@ spec:
           type: string
           default: Node.js golden-path service with Jenkins, Helm, and Sonar
         githubOwner:
-          title: GitHub owner
+          title: GitHub owner (org or user)
           type: string
           default: rmallam
+          pattern: '^[A-Za-z0-9][A-Za-z0-9-]{0,38}$'
         port:
           title: Application port
           type: integer
@@ -86,9 +87,8 @@ spec:
     text:
       - title: What was created
         content: |
-          **GitHub repository:** https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}
+          **GitHub repository:** ${{ steps['publish'].output.remoteUrl }}
 
-          `publish:github` created that public repo on `main` and pushed the skeleton.
           Catalog entity: `${{ steps['register'].output.entityRef }}`
 
           | In Git | Path |
@@ -99,31 +99,31 @@ spec:
           | Jenkinsfile | `/Jenkinsfile` |
           | Sonar properties | `/sonar-project.properties` |
 
-          **Not created automatically:** Jenkins job `demo/${{ parameters.appName }}`,
-          Helm release, Argo CD Application, Sonar project, or OpenShift namespace
-          `${{ parameters.targetNamespace }}` (it must already exist).
+          **Not created automatically:** Jenkins job, Helm release, Argo CD Application,
+          Sonar project, or OpenShift namespace (it must already exist).
     links:
+      # output.links on this Hub do not interpolate parameter defaults — only step outputs.
       - title: GitHub repository
-        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}
+        url: ${{ steps['publish'].output.remoteUrl }}
         icon: github
       - title: catalog-info.yaml
-        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}/blob/main/catalog-info.yaml
+        url: ${{ steps['publish'].output.remoteUrl }}/blob/main/catalog-info.yaml
         icon: github
       - title: Helm chart
-        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}/tree/main/chart
+        url: ${{ steps['publish'].output.remoteUrl }}/tree/main/chart
         icon: github
       - title: Jenkinsfile
-        url: https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}/blob/main/Jenkinsfile
+        url: ${{ steps['publish'].output.remoteUrl }}/blob/main/Jenkinsfile
         icon: github
       - title: Open in catalog
         icon: catalog
         entityRef: ${{ steps['register'].output.entityRef }}
       - title: Open in Dev Spaces
-        url: ${{ parameters.devSpacesBaseUrl }}#https://github.com/${{ parameters.githubOwner }}/${{ parameters.appName }}?new&devfilePath=devfile.yaml
+        url: https://devspaces.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/dashboard/#/load-factory?url=${{ steps['publish'].output.remoteUrl }}&devfilePath=devfile.yaml
         icon: catalog
       - title: Dev Spaces dashboard
-        url: ${{ parameters.devSpacesBaseUrl }}/dashboard/#/workspaces
+        url: https://devspaces.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/dashboard/#/workspaces
         icon: catalog
       - title: OpenShift project
-        url: https://console-openshift-console.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/k8s/cluster/projects/${{ parameters.targetNamespace }}
+        url: https://console-openshift-console.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/k8s/cluster/projects/demo-dev
         icon: catalog

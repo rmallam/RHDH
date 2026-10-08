@@ -70,11 +70,19 @@ for ref in refs:
 code, body = req("GET", "/api/catalog/entities/by-name/template/default/acme-nodejs-golden-path")
 spec = json.dumps(json.loads(body).get("spec", {}))
 print("has GitHub repository:", "GitHub repository" in spec)
+print("has remoteUrl links:", "steps['publish'].output.remoteUrl" in spec)
+print("has load-factory:", "/dashboard/#/load-factory?url=" in spec)
 print("has old /f factory:", "/f?url=" in spec)
 PY
 ```
 
-Expect `refresh … 200` and `has GitHub repository: True`. `/f?url=` must be **false** (that path 404s on Dev Spaces; factory URLs are `https://<devspaces-host>#https://github.com/<owner>/<repo>?new&devfilePath=devfile.yaml`).
+Expect `refresh … 200` and `has GitHub repository: True`.
+
+Output **links must use step outputs** (`steps['publish'].output.remoteUrl`), not `parameters.githubOwner` / `parameters.appName`. On this Hub those parameter placeholders render empty, which produced `https://github.com///blob/main/Jenkinsfile`.
+
+Dev Spaces factory from Hub must be the dashboard route (the `/f` path and `host#git-url` both 404 or get eaten by the Hub SPA):
+
+`https://devspaces.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/dashboard/#/load-factory?url=<remoteUrl>&devfilePath=devfile.yaml`
 
 ## 3. Prove it
 

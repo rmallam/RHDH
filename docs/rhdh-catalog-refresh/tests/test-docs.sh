@@ -22,6 +22,8 @@ need "catalog.entity.refresh"
 need "backstage-backend"
 need "GitHub repository"
 need "/f?url="
+need "load-factory"
+need "steps['publish'].output.remoteUrl"
 need "devfilePath=devfile.yaml"
 if [ "$fail" -ne 0 ]; then
   echo "Catalog refresh docs tests failed"
