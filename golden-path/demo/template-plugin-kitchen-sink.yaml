@@ -22,10 +22,10 @@ spec:
       required: [appName, githubOwner]
       properties:
         appName:
-          title: Application Name
+          title: GitHub repository name
           type: string
           pattern: '^[a-z][a-z0-9-]{2,28}[a-z0-9]$'
-          description: New GitHub repo name under your user
+          description: Required. New public GitHub repo name (lowercase letters, numbers, hyphens).
           ui:autofocus: true
         appDescription:
           title: Description

@@ -25,6 +25,9 @@ need "/f?url="
 need "load-factory"
 need "steps['publish'].output.remoteUrl"
 need "devfilePath=devfile.yaml"
+need "scaffolder.template.parameter.read"
+need "scaffolder.template.step.read"
+need "scaffolder.action.execute"
 if [ "$fail" -ne 0 ]; then
   echo "Catalog refresh docs tests failed"
   exit 1

@@ -38,6 +38,10 @@ grep -q "Update this folder whenever a plugin fails" "$DIR/README.md" || {
   echo "FAIL README missing update rule"
   fail=1
 }
+grep -Fq "scaffolder.template.parameter.read" "$DIR/github-scaffolder.md" || {
+  echo "FAIL github-scaffolder.md missing parameter.read"
+  fail=1
+}
 
 if [ "$fail" -ne 0 ]; then
   echo "Plugin docs tests failed"
