@@ -11,3 +11,4 @@ spec:
     - ./template-start-feature-devspaces.yaml
     - ./template-open-devspaces-namespace.yaml
     - ./template-plugin-kitchen-sink.yaml
+    - ./template-nodejs-golden-path.yaml
