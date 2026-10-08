@@ -26,6 +26,19 @@ data:
       reading:
         allow:
 {{ .Values.app.readingAllow | toYaml | nindent 10 }}
+      {{- if .Values.database.external.enabled }}
+      database:
+        client: pg
+        pluginDivisionMode: schema
+        connection:
+          host: ${POSTGRES_HOST}
+          port: ${POSTGRES_PORT}
+          user: ${POSTGRES_USER}
+          password: ${POSTGRES_PASSWORD}
+          database: ${POSTGRES_DB}
+          ssl:
+            rejectUnauthorized: {{ .Values.database.external.ssl.rejectUnauthorized }}
+      {{- end }}
     signInPage:
 {{ .Values.auth.signInPage | toYaml | nindent 6 }}
     auth:
