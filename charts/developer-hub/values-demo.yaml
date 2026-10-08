@@ -86,6 +86,8 @@ permission:
     p, role:default/developer, catalog-entity, read, allow
     p, role:default/developer, catalog.entity.create, create, allow
     p, role:default/developer, catalog.entity.refresh, update, allow
+    p, role:default/developer, catalog.location.create, create, allow
+    p, role:default/developer, catalog.location.read, read, allow
     p, role:default/developer, scaffolder.template.use, use, allow
     p, role:default/developer, scaffolder.template.parameter.read, read, allow
     p, role:default/developer, scaffolder.template.step.read, read, allow

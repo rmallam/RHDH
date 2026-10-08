@@ -70,7 +70,7 @@ grep -q "remoteRef:" "$DEMO" || { echo "FAIL demo ExternalSecret missing remoteR
 grep -q "dangerouslyAllowOutsideDevelopment" "$DEMO" || { echo "FAIL demo missing guest provider"; fail=1; }
 grep -q "kubernetes.clusters.read" "$DEMO" || { echo "FAIL demo missing kubernetes.clusters.read"; fail=1; }
 grep -q "kubernetes.resources.read" "$DEMO" || { echo "FAIL demo missing kubernetes.resources.read"; fail=1; }
-for perm in scaffolder.template.parameter.read scaffolder.template.step.read scaffolder.action.execute; do
+for perm in scaffolder.template.parameter.read scaffolder.template.step.read scaffolder.action.execute catalog.location.create catalog.location.read; do
   grep -q "$perm" "$DEMO" || { echo "FAIL demo missing $perm"; fail=1; }
   grep -q "$perm" "$PROD" || { echo "FAIL prod missing $perm"; fail=1; }
 done
