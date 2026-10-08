@@ -19,6 +19,8 @@ need "Does not provision a namespace" "$T"
 need "template-open-devspaces-namespace.yaml" "$DIR/location.yaml"
 need "template-plugin-kitchen-sink.yaml" "$DIR/location.yaml"
 need "template-nodejs-golden-path.yaml" "$DIR/location.yaml"
+need "template-quarkus-golden-path.yaml" "$DIR/location.yaml"
+need "template-nodejs-website.yaml" "$DIR/location.yaml"
 if [ "$fail" -ne 0 ]; then
   echo "Template tests failed"
   exit 1
