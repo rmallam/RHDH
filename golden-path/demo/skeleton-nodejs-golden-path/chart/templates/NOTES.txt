@@ -1,0 +1,3 @@
+{{ include "app.name" . }} deployed to {{ .Release.Namespace }}.
+Topology label: backstage.io/kubernetes-id={{ include "app.name" . }}
+Upgrade: helm upgrade --install {{ .Release.Name }} chart -n {{ .Release.Namespace }}

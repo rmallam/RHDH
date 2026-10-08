@@ -1,0 +1,28 @@
+name: ${{ values.appName }}
+namespace: ${{ values.targetNamespace }}
+
+replicaCount: 1
+
+image:
+  repository: registry.access.redhat.com/ubi9/nodejs-20
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Override after CI builds an app image from Containerfile.
+command:
+  - node
+  - server.js
+
+service:
+  port: ${{ values.port }}
+
+route:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

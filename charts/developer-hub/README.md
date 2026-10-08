@@ -193,7 +193,7 @@ Per-plugin requirements, secrets, annotations, and known issues (update when a t
 
 [docs/rhdh-plugins/README.md](../../docs/rhdh-plugins/README.md)
 
-Demo fixture: catalog entity `plugin-kitchen-sink`. Golden-path template: `acme-plugin-kitchen-sink` (GitHub + Dev Spaces factory URL).
+Demo fixture: catalog entity `plugin-kitchen-sink`. Templates: `acme-plugin-kitchen-sink` (plugin tabs) and `acme-nodejs-golden-path` (Jenkins + Helm + Sonar + Dev Spaces).
 
 ## Tests
 

@@ -63,6 +63,9 @@ catalog:
       target: https://raw.githubusercontent.com/rmallam/RHDH/refs/heads/main/golden-path/demo/template-plugin-kitchen-sink.yaml
       allow: [Template]
     - type: url
+      target: https://raw.githubusercontent.com/rmallam/RHDH/refs/heads/main/golden-path/demo/template-nodejs-golden-path.yaml
+      allow: [Template]
+    - type: url
       target: https://github.com/rmallam/demo-ks-plugins/blob/main/catalog-info.yaml
       allow: [Component]
     - type: file

@@ -139,6 +139,8 @@ file_loc = locs.find { |l| l["target"].to_s.include?("catalog-demo/catalog-info.
 raise "demo missing kitchen-sink file location" unless file_loc
 ks_tpl = locs.find { |l| l["target"].to_s.include?("template-plugin-kitchen-sink.yaml") }
 raise "demo missing kitchen-sink template location" unless ks_tpl
+gp_tpl = locs.find { |l| l["target"].to_s.include?("template-nodejs-golden-path.yaml") }
+raise "demo missing nodejs golden-path template location" unless gp_tpl
 db = d.dig("backend", "database") || {}
 raise "demo missing backend.database.client pg" unless db["client"] == "pg"
 raise "demo missing pluginDivisionMode schema" unless db["pluginDivisionMode"] == "schema"

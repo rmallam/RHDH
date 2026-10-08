@@ -1,0 +1,103 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: acme-nodejs-golden-path
+  title: Node.js golden path (Jenkins + Helm + Sonar)
+  description: >
+    Creates a Node.js 20 service from the lab sample: unit tests, Sonar
+    properties, Jenkinsfile (lint/test/Sonar/Helm), a deploy Helm chart,
+    catalog annotations for the working Hub plugins, and an Open in Dev Spaces
+    URL. Publishes to GitHub (Bitbucket scaffolder is not loaded).
+  tags:
+    - nodejs
+    - golden-path
+    - jenkins
+    - helm
+    - sonarqube
+    - demo
+    - recommended
+spec:
+  owner: group:platform-team
+  type: service
+  parameters:
+    - title: Application
+      required: [appName]
+      properties:
+        appName:
+          title: Application Name
+          type: string
+          pattern: '^[a-z][a-z0-9-]{2,28}[a-z0-9]$'
+          ui:autofocus: true
+        appDescription:
+          title: Description
+          type: string
+          default: Node.js golden-path service with Jenkins, Helm, and Sonar
+        githubOwner:
+          title: GitHub owner
+          type: string
+          default: rmallam
+        port:
+          title: Application port
+          type: integer
+          default: 3000
+        targetNamespace:
+          title: Deploy namespace
+          type: string
+          default: demo-dev
+        sonarHostUrl:
+          title: SonarQube URL (in-cluster)
+          type: string
+          default: http://sonarqube.sonarqube.svc:9000
+        devSpacesBaseUrl:
+          title: Dev Spaces URL
+          type: string
+          default: https://devspaces.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com
+  steps:
+    - id: fetch-skeleton
+      name: Fetch Node.js golden-path skeleton
+      action: fetch:template
+      input:
+        url: https://github.com/rmallam/RHDH/tree/main/golden-path/demo/skeleton-nodejs-golden-path
+        values:
+          appName: ${{ parameters.appName }}
+          appDescription: ${{ parameters.appDescription }}
+          githubOwner: ${{ parameters.githubOwner }}
+          port: ${{ parameters.port }}
+          targetNamespace: ${{ parameters.targetNamespace }}
+          sonarHostUrl: ${{ parameters.sonarHostUrl }}
+          sonarProjectKey: ${{ parameters.appName }}
+          devSpacesBaseUrl: ${{ parameters.devSpacesBaseUrl }}
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        repoUrl: github.com?owner=${{ parameters.githubOwner }}&repo=${{ parameters.appName }}
+        description: ${{ parameters.appDescription }}
+        defaultBranch: main
+        repoVisibility: public
+        gitCommitMessage: "Initial Node.js golden path (Jenkins, Helm, Sonar)"
+    - id: register
+      name: Register in catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+  output:
+    text:
+      - title: Next
+        content: |
+          Repo: ${{ steps['publish'].output.remoteUrl }}
+          Jenkinsfile stages: lint → test → SonarQube → Helm lint.
+          Deploy: helm upgrade --install ${{ parameters.appName }} chart -n ${{ parameters.targetNamespace }}
+          Dev Spaces: ${{ parameters.devSpacesBaseUrl }}/f?url=${{ steps['publish'].output.remoteUrl }}&new
+          Create a Jenkins job named demo/${{ parameters.appName }} pointing at this repo.
+    links:
+      - title: Source repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+        icon: github
+      - title: Open in Dev Spaces
+        url: ${{ parameters.devSpacesBaseUrl }}/f?url=${{ steps['publish'].output.remoteUrl }}&new
+        icon: catalog
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
