@@ -15,6 +15,8 @@ need() {
 T="$DIR/template-plugin-kitchen-sink.yaml"
 S="$DIR/skeleton-plugin-kitchen-sink/catalog-info.yaml"
 need "name: acme-plugin-kitchen-sink" "$T"
+need "title: GitHub repository name" "$T"
+need "required: [appName, githubOwner]" "$T"
 need "publish:github" "$T"
 need "catalog:register" "$T"
 need "steps['publish'].output.remoteUrl" "$T"

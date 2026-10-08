@@ -16,6 +16,8 @@ need() {
 T="$DIR/template-nodejs-golden-path.yaml"
 S="$DIR/skeleton-nodejs-golden-path"
 need "name: acme-nodejs-golden-path" "$T"
+need "title: GitHub repository name" "$T"
+need "required: [appName, githubOwner]" "$T"
 need "publish:github" "$T"
 need "title: GitHub repository" "$T"
 need "steps['publish'].output.remoteUrl" "$T"

@@ -100,6 +100,7 @@ If the wizard still shows only “Open in Dev Spaces”, the browser cached the 
 |---|---|---|
 | 2026-10-08 | No Refresh on Create | Use catalog entity URL or `POST /api/catalog/refresh`. Not a missing RBAC issue on guest. |
 | 2026-10-08 | Dev Spaces “We couldn't find that page” | Old template used `/f?url=`. Refresh after pushing the hash factory URL. |
+| 2026-10-08 | Create has no Application Name; task `steps: []`; Dev Spaces `url=` missing | RBAC: add `scaffolder.template.parameter.read`, `scaffolder.template.step.read`, `scaffolder.action.execute`. Then hard-refresh `/create` and run Create again (old tasks stay empty). |
 | — | Refresh 200 but wizard unchanged | GitHub `raw.githubusercontent.com` CDN delay, or cached Create page. Re-run refresh; private window. |
 | — | `Entity template:default/… not found` | That template is not a Location on this Hub (UDI templates are on `RHDH-SM-DevSpaces`, not always registered here). |
 
