@@ -1,0 +1,83 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.appName }}
+  description: ${{ values.appDescription }}
+  tags:
+    - quarkus
+    - java
+    - golden-path
+    - jenkins
+    - helm
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    backstage.io/source-location: url:https://github.com/${{ values.githubOwner }}/${{ values.appName }}/tree/main/
+    backstage.io/view-url: https://github.com/${{ values.githubOwner }}/${{ values.appName }}
+    backstage.io/edit-url: https://github.com/${{ values.githubOwner }}/${{ values.appName }}/edit/main/catalog-info.yaml
+    github.com/project-slug: ${{ values.githubOwner }}/${{ values.appName }}
+    jenkins.io/job-full-name: demo/${{ values.appName }}
+    sonarqube.org/project-key: ${{ values.sonarProjectKey }}
+    argocd/app-name: ${{ values.appName }}
+    argocd/app-namespace: openshift-gitops
+    backstage.io/kubernetes-id: ${{ values.appName }}
+    backstage.io/kubernetes-namespace: ${{ values.targetNamespace }}
+    vault.io/secrets-path: rhdh
+    jira/project-key: DEMO
+    jira/component: ${{ values.appName }}
+    snyk.io/org-id: stub-org
+    snyk.io/org-name: stub-org
+    snyk.io/project-ids: stub
+    servicenow.com/entity-id: demo
+    jfrog-artifactory/image-name: ${{ values.appName }}
+    dynatrace.com/dynatrace-entity-id: SERVICE-DEMO
+    acme.io/devfile-path: devfile.yaml
+    acme.io/helm-chart: chart
+    acme.io/mesh: ambient
+    acme.io/mesh-ingress: gateway
+    acme.io/devspaces-url: ${{ values.devSpacesBaseUrl }}
+    acme.io/devspaces-factory-url: ${{ values.devSpacesBaseUrl }}#https://github.com/${{ values.githubOwner }}/${{ values.appName }}?new&devfilePath=devfile.yaml
+  links:
+    - url: https://github.com/${{ values.githubOwner }}/${{ values.appName }}/tree/main/chart
+      title: Helm chart
+      icon: github
+    - url: https://github.com/${{ values.githubOwner }}/${{ values.appName }}/blob/main/Jenkinsfile
+      title: Jenkinsfile
+      icon: github
+    - url: https://jenkins-jenkins.apps.rosa.rosa-89s85.bhg0.p3.openshiftapps.com/job/demo/job/${{ values.appName }}/
+      title: Jenkins CI
+      icon: dashboard
+    - url: https://github.com/${{ values.githubOwner }}/${{ values.appName }}/blob/main/openapi.yaml
+      title: OpenAPI
+      icon: github
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:default/guest
+  system: ${{ values.systemName }}
+  providesApis:
+    - ${{ values.appName }}-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: ${{ values.appName }}-api
+  description: OpenAPI for ${{ values.appName }}
+  tags:
+    - quarkus
+    - openapi
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: user:default/guest
+  system: ${{ values.systemName }}
+  definition:
+    $text: ./openapi.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: ${{ values.systemName }}
+  description: ${{ values.systemDescription }}
+spec:
+  owner: user:default/guest

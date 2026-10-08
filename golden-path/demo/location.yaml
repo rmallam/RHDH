@@ -12,3 +12,5 @@ spec:
     - ./template-open-devspaces-namespace.yaml
     - ./template-plugin-kitchen-sink.yaml
     - ./template-nodejs-golden-path.yaml
+    - ./template-quarkus-golden-path.yaml
+    - ./template-nodejs-website.yaml
