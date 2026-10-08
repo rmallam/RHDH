@@ -28,3 +28,4 @@ After you push `golden-path/demo/template-*.yaml`, Hub does not pick it up until
 |---|---|---|
 | earlier | `defaultBranch` rejected | Use `defaultBranch` (this RHDH build accepts it) on `publish:github` |
 | 2026-10-08 | No Refresh on Create after a template Git push | `POST /api/catalog/refresh` on the Location + Template ([runbook](../rhdh-catalog-refresh/README.md)) |
+| 2026-10-08 | Output links `https://github.com///blob/main/Jenkinsfile` | This Hub does not interpolate `parameters.*` in `output.links`. Use `steps['publish'].output.remoteUrl`. |

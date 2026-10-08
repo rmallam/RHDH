@@ -4,7 +4,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
 need() {
-  if grep -q "$1" "$2"; then
+  if grep -Fq "$1" "$2"; then
     echo "OK  $1"
   else
     echo "FAIL missing $1 in $2"
@@ -17,7 +17,8 @@ S="$DIR/skeleton-plugin-kitchen-sink/catalog-info.yaml"
 need "name: acme-plugin-kitchen-sink" "$T"
 need "publish:github" "$T"
 need "catalog:register" "$T"
-need "#https://github.com" "$T"
+need "steps['publish'].output.remoteUrl" "$T"
+need "/dashboard/#/load-factory?url=" "$T"
 need "title: GitHub repository" "$T"
 need "skeleton-plugin-kitchen-sink" "$T"
 need "template-plugin-kitchen-sink.yaml" "$DIR/location.yaml"

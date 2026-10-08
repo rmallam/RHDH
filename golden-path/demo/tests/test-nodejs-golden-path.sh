@@ -5,7 +5,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
 need() {
-  if grep -q "$1" "$2"; then
+  if grep -Fq "$1" "$2"; then
     echo "OK  $1"
   else
     echo "FAIL missing $1 in $2"
@@ -18,7 +18,8 @@ S="$DIR/skeleton-nodejs-golden-path"
 need "name: acme-nodejs-golden-path" "$T"
 need "publish:github" "$T"
 need "title: GitHub repository" "$T"
-need "#https://github.com" "$T"
+need "steps['publish'].output.remoteUrl" "$T"
+need "/dashboard/#/load-factory?url=" "$T"
 need "title: Helm chart" "$T"
 need "title: Jenkinsfile" "$T"
 need "title: OpenShift project" "$T"
@@ -41,6 +42,10 @@ if grep -q "publish:bitbucket" "$T"; then
 fi
 if grep -q "/f?url=" "$T"; then
   echo "FAIL template still uses Dev Spaces /f factory path (404 on this cluster)"
+  fail=1
+fi
+if grep -q 'url: https://github.com/\${{ parameters.githubOwner }}' "$T"; then
+  echo "FAIL output links must use publish remoteUrl (parameters are empty on this Hub)"
   fail=1
 fi
 
