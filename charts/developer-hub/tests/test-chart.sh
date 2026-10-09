@@ -138,6 +138,11 @@ sonar_url = d.dig("sonarqube", "baseUrl")
 raise "demo sonar url #{sonar_url}" unless sonar_url == "http://sonarqube.sonarqube.svc:9000"
 jira_url = d.dig("jira", "baseUrl")
 raise "demo jira url #{jira_url}" unless jira_url == "http://saas-stubs.saas-stubs.svc:8080"
+raise "demo jira must use datacenter search (GET /search)" unless d.dig("jira", "product") == "datacenter"
+proxy_jira = d.dig("proxy", "endpoints", "/jira/api") || {}
+unless Array(proxy_jira["allowedMethods"]).include?("POST")
+  raise "demo jira proxy must allow POST for /search/jql"
+end
 locs = d.dig("catalog", "locations") || []
 file_loc = locs.find { |l| l["target"].to_s.include?("catalog-demo/catalog-info.yaml") }
 raise "demo missing kitchen-sink file location" unless file_loc
@@ -145,6 +150,10 @@ ks_tpl = locs.find { |l| l["target"].to_s.include?("template-plugin-kitchen-sink
 raise "demo missing kitchen-sink template location" unless ks_tpl
 gp_tpl = locs.find { |l| l["target"].to_s.include?("template-nodejs-golden-path.yaml") }
 raise "demo missing nodejs golden-path template location" unless gp_tpl
+qx_tpl = locs.find { |l| l["target"].to_s.include?("template-quarkus-golden-path.yaml") }
+raise "demo missing quarkus golden-path template location" unless qx_tpl
+web_tpl = locs.find { |l| l["target"].to_s.include?("template-nodejs-website.yaml") }
+raise "demo missing nodejs website template location" unless web_tpl
 db = d.dig("backend", "database") || {}
 raise "demo missing backend.database.client pg" unless db["client"] == "pg"
 raise "demo missing pluginDivisionMode schema" unless db["pluginDivisionMode"] == "schema"

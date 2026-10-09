@@ -21,9 +21,9 @@ What each Developer Hub plugin needs to light up, on this ROSA lab and in a cust
 | [sonarqube](sonarqube.md) | partial | `sonarqube.org/project-key` | In-cluster Sonar; project must exist |
 | [vault](vault.md) | working | `vault.io/secrets-path` | `-dev` Vault; `pr_1225` overlay |
 | [snyk](snyk.md) | partial | `snyk.io/org-id` | Self-exported OCI; `mocked: true` on demo |
-| [jira](jira.md) | partial | `jira/project-key` | SaaS stub |
+| [jira](jira.md) | working | `jira/project-key` | Demo stub returns DEMO issues; kitchen-sink `DEMO` |
 | [artifactory](artifactory.md) | partial | `jfrog-artifactory/image-name` | SaaS stub |
-| [servicenow](servicenow.md) | partial | `servicenow.com/entity-id` | SaaS stub |
+| [servicenow](servicenow.md) | working | `servicenow.com/entity-id` | Demo stub returns INC tickets for `demo` |
 | [dynatrace](dynatrace.md) | partial | `dynatrace.com/dynatrace-entity-id` | SaaS stub |
 | [apic](apic.md) | partial | plugin catalog sync | SaaS stub |
 | [techdocs](techdocs.md) | working | `backstage.io/techdocs-ref` | Local builder; needs `mkdocs.yml` |
