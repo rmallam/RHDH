@@ -16,7 +16,7 @@ oci://ghcr.io/rmallam/rhdh-plugin-snyk:bs_1.49.4__2.5.10
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-jira:bs_1.49.4__2.14.0
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-jfrog-artifactory:bs_1.49.4__1.28.0
 
-# HashiCorp Vault — LIST-only (WNZL req 43). Not in the RHDH 1.10 extras table;
+# HashiCorp Vault — LIST-only  Not in the RHDH 1.10 extras table;
 # confirm the tag with: skopeo list-tags docker://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault
 # Vault — no published bs_ tag on GHCR as of 2026-10-07 (pr_1225 only). Skip until a bs_ tag exists.
 # oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault:bs_1.49.4__0.31.0
