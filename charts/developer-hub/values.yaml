@@ -276,6 +276,8 @@ plugins:
     package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-jira:bs_1.49.4__2.14.0
     baseUrl: "${JIRA_BASE_URL}"
     token: "${JIRA_TOKEN}"
+    product: ""
+    apiVersion: ""
 
   artifactory:
     enabled: true

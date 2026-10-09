@@ -141,6 +141,8 @@ plugins:
   jira:
     baseUrl: http://saas-stubs.saas-stubs.svc:8080
     token: "${JIRA_TOKEN}"
+    product: datacenter
+    apiVersion: 2
   artifactory:
     baseUrl: http://saas-stubs.saas-stubs.svc:8080
     token: "${ARTIFACTORY_TOKEN}"

@@ -1,8 +1,8 @@
 # ServiceNow
 
-**Status:** partial (SaaS stub)
+**Status:** working (demo stub with INC tickets)
 
-Change / incident card.
+Incident tab keyed by `servicenow.com/entity-id`. The demo stub returns INC0001001/1002 for `demo` and answers `sys_dictionary` so the plugin schema check passes. Swap `SERVICENOW_*` to a PDI when you have one.
 
 ## Required
 
@@ -23,4 +23,5 @@ Demo: SaaS stub. Kitchen-sink: `demo`.
 
 | When | Error | Fix |
 |---|---|---|
-| — | Empty card | Real instance URL + an entity id that exists |
+| 2026-10-09 | Empty card on saas-stubs | Stub `/api/now/table/incident` returned `[]` and had no `sys_dictionary` / `u_backstage_entity_id`. Stub now returns two demo incidents and the incident field list. |
+| — | Empty against a PDI | Point `SERVICENOW_*` at the PDI and set `u_backstage_entity_id` on the incident |

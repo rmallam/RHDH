@@ -238,6 +238,12 @@ data:
     jira:
       baseUrl: {{ .Values.plugins.jira.baseUrl | quote }}
       token: {{ .Values.plugins.jira.token | quote }}
+      {{- if .Values.plugins.jira.product }}
+      product: {{ .Values.plugins.jira.product | quote }}
+      {{- end }}
+      {{- if .Values.plugins.jira.apiVersion }}
+      apiVersion: {{ .Values.plugins.jira.apiVersion }}
+      {{- end }}
     {{- end }}
     {{- if .Values.plugins.artifactory.enabled }}
     artifactory:
@@ -270,7 +276,10 @@ data:
           headers:
             Authorization: Bearer {{ .Values.plugins.jira.token }}
             Accept: application/json
-          allowedMethods: [GET]
+            Content-Type: application/json
+            X-Atlassian-Token: no-check
+            User-Agent: RHDH
+          allowedMethods: [GET, POST]
         {{- end }}
         {{- if .Values.plugins.artifactory.enabled }}
         /artifactory:
