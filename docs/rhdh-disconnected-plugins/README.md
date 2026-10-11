@@ -27,9 +27,9 @@ docs/rhdh-disconnected-plugins/
 | **Bundled** | `./dynamic-plugins/dist/…` | None. Already inside the RHDH operand image. Mirror **that image** with `oc-mirror` like any other OpenShift payload. |
 | **OCI** | `oci://registry…/name:tag` | Mirror the artifact to the internal registry. Mount `registries.conf` on `install-dynamic-plugins`. |
 
-The **full Customer install list** is `manifests/dynamic-plugins.yaml` (and the table in `plugins-inventory.md`). `plugins-oci.txt` is only the GHCR artifacts that are **not** inside the RHDH image. Jenkins is required and **is** enabled (`./dynamic-plugins/dist/backstage-community-plugin-jenkins*`); it is omitted from `plugins-oci.txt` on purpose.
+The **full Customer install list** is `manifests/dynamic-plugins.yaml` (and the table in `plugins-inventory.md`). `plugins-oci.txt` is the customer spreadsheet pin list plus extras that are **not** inside the RHDH image. Kubernetes and LDAP match the spreadsheet but stay bundled (`./dynamic-plugins/dist/…`).
 
-OCI extras that **must** be mirrored: Argo CD, SonarQube, Snyk, Jira, Artifactory, Tekton, **Vault**, **ServiceNow**, **Dynatrace** (+ DQL), **IBM API Connect**.
+OCI extras that **must** be mirrored: Bitbucket catalog, Jenkins (FE/BE/scaffolder), Argo CD, SonarQube (UI + scaffolder + utils), Snyk, Jira, Artifactory, PagerDuty, Tekton, **Vault**, **ServiceNow**, **Dynatrace** (+ DQL), **Kiali**, **IBM API Connect**.
 
 Also mirror the **RHDH 1.10 plugin catalog index** so GA/TP plugins from Red Hat resolve without the internet:
 
