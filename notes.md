@@ -12,3 +12,11 @@ appConfig:
         users:
           - name: user:development/guest
   ```
+```
+spec:
+  networking:
+    hostname: devspaces.platform.example.com
+    domain: platform.example.com
+    labels:
+      router: platform
+```
