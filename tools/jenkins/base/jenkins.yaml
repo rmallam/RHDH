@@ -61,8 +61,7 @@ spec:
         name: jenkins
     spec:
       containers:
-      - capabilities: {}
-        env:
+      - env:
         - name: OPENSHIFT_ENABLE_OAUTH
           value: 'false'
         - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
@@ -85,7 +84,7 @@ spec:
           value: "/var/lib/jenkins/proxy.yaml"
         - name: JAVA_FIPS_OPTIONS
           value: "-Dcom.redhat.fips=false"
-        image: " "
+        image: image-registry.openshift-image-registry.svc:5000/openshift/jenkins:2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 2
@@ -148,19 +147,22 @@ metadata:
     template: jenkins-persistent-template
   name: jenkins
 ---
-apiVersion: authorization.openshift.io/v1
-groupNames: 
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
     app: jenkins-persistent
     template: jenkins-persistent-template
-  name: jenkins_edit
+  name: jenkins-edit
+  namespace: jenkins
 roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
   name: edit
 subjects:
 - kind: ServiceAccount
   name: jenkins
+  namespace: jenkins
 ---
 apiVersion: v1
 kind: Service

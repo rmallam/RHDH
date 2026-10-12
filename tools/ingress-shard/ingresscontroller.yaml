@@ -1,0 +1,23 @@
+# Dev Spaces ingress shard. The domain must be inside this cluster's public DNS
+# zone and must not be the default apps domain, so the ingress operator can
+# publish *.domain at this shard's load balancer.
+# This cluster: base domain ocp.dkccw.sandbox3257.opentlc.com.
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: devspaces
+  namespace: openshift-ingress-operator
+  labels:
+    app.kubernetes.io/part-of: acme-platform
+    app.kubernetes.io/component: ingress-shard
+spec:
+  domain: devspaces.ocp.dkccw.sandbox3257.opentlc.com
+  replicas: 1
+  routeSelector:
+    matchLabels:
+      ingress.openshift.io/shard: devspaces
+  endpointPublishingStrategy:
+    type: LoadBalancerService
+    loadBalancer:
+      dnsManagementPolicy: Managed
+      scope: External

@@ -1,0 +1,12 @@
+# Keep sharded routes off the default router. Routes without
+# ingress.openshift.io/shard stay on this controller.
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: default
+  namespace: openshift-ingress-operator
+spec:
+  routeSelector:
+    matchExpressions:
+      - key: ingress.openshift.io/shard
+        operator: DoesNotExist

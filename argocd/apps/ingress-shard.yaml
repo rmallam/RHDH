@@ -1,0 +1,25 @@
+# IngressController for the Dev Spaces route shard. The CheCluster itself
+# stays in rhdh-platform-gitops and only sets the matching route label and domain.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-shard
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: acme-platform
+    app.kubernetes.io/component: ingress-shard
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rmallam/RHDH
+    targetRevision: main
+    path: tools/ingress-shard
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-ingress-operator
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
