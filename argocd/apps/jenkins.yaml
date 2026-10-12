@@ -23,3 +23,11 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  # The image trigger rewrites the container image and lastTriggeredImage.
+  # Ignore those so Argo does not roll Jenkins on every sync.
+  ignoreDifferences:
+    - group: apps.openshift.io
+      kind: DeploymentConfig
+      jqPathExpressions:
+        - .spec.template.spec.containers[]?.image
+        - .spec.triggers[]?.imageChangeParams.lastTriggeredImage
