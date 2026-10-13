@@ -1,4 +1,4 @@
-# Customer plugin inventory
+# Plugin inventory
 
 `plugins-oci.txt` is the customer pin list (spreadsheet data.xls v.2) plus extras this platform loads. Kubernetes and LDAP **match the spreadsheet** but stay bundled in the RHDH image, so they are comments only. Everything else with an overlay is an `oci://` line.
 
