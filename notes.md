@@ -20,3 +20,6 @@ spec:
     labels:
       router: platform
 ```
+```
+https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.7/html/authentication_in_red_hat_developer_hub/enabling-user-authentication-with-microsoft-azure
+```
