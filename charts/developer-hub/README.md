@@ -12,7 +12,7 @@ Nothing in `charts/` is committed or pushed until you ask. The live ROSA instanc
 |---|---|
 | Backstage CR, app-config, dynamic plugins, RBAC CSV | RHDH **operator** on ROSA (already in `rhdh-operator`, channel `fast-1.10`) |
 | Microsoft Entra **login** (`auth.providers.microsoft`) | Entra **app registration** in Azure Portal (you create this) |
-| LDAP org catalog (`catalog.providers.ldapOrg`) | OpenLDAP deployment (`demo/ldap/` is separate) |
+| LDAP org catalog (`catalog.providers.ldapOrg`) | OpenLDAP deployment (`tools/ldap/` is separate) |
 | Sign-in resolvers (email → LDAP user, then local-part fallback) | Secret values (`AZURE_*`, `LDAP_BIND_PASSWORD`, …) |
 | Plugin enable flags + OCI pins (Jenkins, Argo, Snyk, Jira, Vault, …) | Bitbucket **SaaS** (overlay module still broken) |
 | CNPG `Cluster` + Hub `backend.database` | CNPG **operator** (`components/cnpg`, ns `cnpg-system`) |

@@ -18,6 +18,12 @@ The RHDH Helm chart does **not** install Jenkins, SonarQube, Vault, or SaaS stub
 
 Workshop / HLD documents are **not** in this repo.
 
+## Docs
+
+Runbook index: [`docs/README.md`](docs/README.md). Read [`docs/lab-state`](docs/lab-state/README.md) first: it names the current cluster and lists what is deployed, what is in git but not deployed, and which settings are lab-only.
+
+The current cluster is deployed from `rmallam/rhdh-platform-gitops`, not from the chart in this repo. `charts/developer-hub/values-demo.yaml` here still targets the first cluster (`rosa-89s85`), which is gone.
+
 ## Recreate the cluster
 
 1. OpenShift GitOps must already be installed (creates `openshift-gitops`).
