@@ -13,6 +13,7 @@ Start with **lab-state**. It says which cluster is current and what is deployed;
 | [rhdh-disconnected-plugins](rhdh-disconnected-plugins/README.md) | Mirroring OCI plugins, `registries.conf` for the init container, the pin list | rosa-89s85 |
 | [rhdh-entra-ldap](rhdh-entra-ldap/README.md) | Entra sign-in with LDAP as the user and group source | rosa-89s85 |
 | [rhdh-cnpg](rhdh-cnpg/README.md) | CloudNativePG as the Hub database | rosa-89s85; current values added for sandbox3257 |
+| [rhdh-database](rhdh-database/README.md) | What the Hub stores in PostgreSQL, schema by schema: what can be rebuilt, where credentials sit | sandbox3257, 2026-10-14 |
 | [rhdh-vault-eso](rhdh-vault-eso/README.md) | Hub secrets from Vault through External Secrets | rosa-89s85 |
 | [rhdh-catalog-refresh](rhdh-catalog-refresh/README.md) | Forcing the catalog to re-read a template | rosa-89s85 |
 | [`tools/ldap`](../tools/ldap/README.md) | The stand-in OpenLDAP and the demo people | both |
@@ -30,7 +31,7 @@ Both repos contain a `charts/developer-hub`. The live Hub comes from `rhdh-platf
 
 ## Conventions
 
-- Every page opens with one bold **Update this file when…** line. Follow it.
+- Most pages open with one bold **Update this file when…** line. Where a page has one, follow it. Give every new page one.
 - A fix goes in the page's **Known issues** table with the date and the error text as it appeared.
 - **Production deltas** tables list what a customer install changes. They are the only place lab shortcuts are allowed to be described as acceptable.
 - No real secret values or tokens. Key names and placeholders only.

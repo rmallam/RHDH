@@ -34,7 +34,8 @@ Same pattern, two differences from the table above: the `Cluster` CR now comes f
 | Cluster CR | `rhdh-pg` in `rhdh`, 1 instance, 10Gi on `gp3-csi`, `max_connections` 200 |
 | Postgres image | `ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie` — **PostgreSQL 18.6** |
 | Why 18 | `cluster.imageName` is empty, so the operator filled in its own default. Nobody chose 18 |
-| Plugin schemas | 29 schemas in database `app` (`pluginDivisionMode: schema`) |
+| Plugin schemas | 28 plugin schemas in database `app` (`pluginDivisionMode: schema`). Contents: [rhdh-database](../rhdh-database/README.md) |
+| Connections | 51 from one Hub replica, against `max_connections` 200 |
 | Backup | None. No `ScheduledBackup`, no object store |
 
 **Pin `imageName`.** With it empty, the Postgres major version is whatever the installed operator release defaults to, and an operator upgrade changes that default for every cluster created afterwards. Check the major version against the RHDH supported-configurations page for the release in use before pinning; do not assume the operator default is one RHDH supports.

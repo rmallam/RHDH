@@ -51,9 +51,9 @@ Two separate switches. Build is on: workspaces can run `podman build` under the 
 
 ### Storage: per-user on ReadWriteOnce
 
-`per-user` gives each developer **one** PVC shared by all their workspaces. This lab has only `gp3-csi`, which is RWO. That works here for one reason: `maxRunningWorkspacesPerUser` is `1`, so the volume is never mounted by two pods at once.
+`per-user` gives each developer **one** PVC shared by all their workspaces. This lab has only `gp3-csi`, which is RWO. ReadWriteOnce limits the volume to one **node**, not one pod: several workspace pods can mount it together as long as they are scheduled to the same node.
 
-It is fragile in two ways. Raise the running limit and the second workspace hangs in `ContainerCreating` on the volume. And an RWO EBS volume is tied to an availability zone, so a workspace can only restart on a node in the same zone. Use an RWX class when one exists and set `cheCluster.storage.accessModes` and `storageClass` to match.
+With `maxRunningWorkspacesPerUser: 1` there is only ever one workspace pod per user, so the question does not arise here. It is fragile in two ways once that changes. Raise the running limit and a second workspace that lands on a different node cannot attach the volume and waits in `ContainerCreating` with a multi-attach error; one that lands on the same node starts normally, so the failure looks intermittent. And an RWO EBS volume is tied to an availability zone, so a workspace can only restart on a node in the same zone. Use an RWX class when one exists and set `cheCluster.storage.accessModes` and `storageClass` to match.
 
 ### What NetworkPolicy does
 
@@ -157,6 +157,6 @@ docs/devspaces/tests/test-docs.sh
 |---|---|---|
 | — | Dashboard Route has no host, or `oc get route` shows it admitted by no router | Shard not applied, shard label mismatch, or `networking.domain` differs from the shard's `spec.domain` |
 | — | Dashboard reachable on two routers | `default-exclude-shard.yaml` not applied |
-| — | Second workspace stuck in `ContainerCreating` on `claim-devworkspace` | RWO per-user volume already mounted. Keep `maxRunningWorkspacesPerUser: 1` or move to RWX |
+| — | Second workspace stuck in `ContainerCreating` on `claim-devworkspace`, sometimes but not always | The RWO per-user volume is attached to another node. Pods on the same node share it; pods on different nodes cannot. Keep `maxRunningWorkspacesPerUser: 1` or move to RWX |
 | — | Workspace will not restart after a node drain | RWO volume is in another availability zone |
 | — | Template "Open in Dev Spaces" links point at the wrong host | The Hub takes them from `devspacesBaseUrl` in `charts/developer-hub/values-deploy.yaml`. It is a separate value from the `CheCluster` domain and does not follow it |

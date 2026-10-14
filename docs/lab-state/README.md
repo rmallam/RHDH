@@ -57,7 +57,7 @@ oc get subscriptions.operators.coreos.com -A \
 | OpenLDAP | `ldap` | `osixia/openldap:1.5.0`, `emptyDir`, 3 users / 3 groups |
 | Jenkins, Vault | `jenkins`, `vault` | Test installs from `tools/` |
 
-Hub plugin versions and load status are in [rhdh-plugins](../rhdh-plugins/README.md#installed-on-sandbox3257).
+Hub plugin versions and load status are in [rhdh-plugins](../rhdh-plugins/README.md#installed-on-sandbox3257). What the database holds, schema by schema, is in [rhdh-database](../rhdh-database/README.md).
 
 ## Argo CD applications
 
@@ -127,6 +127,8 @@ Everything here exists to make a throwaway cluster convenient. None of it belong
 
 Both repos are needed. The split is: operators and test tools from `RHDH`, custom resources from `rhdh-platform-gitops`.
 
+This order is read from the scripts. It has **not** been replayed end to end on an empty cluster, so treat the first rebuild as a test of this page.
+
 ```bash
 # 1. OpenShift GitOps (OperatorHub), then let its controller create cluster-scoped CRs
 oc apply -f rhdh-platform-gitops/argocd/gitops-controller-admin.yaml
@@ -134,24 +136,40 @@ oc apply -f rhdh-platform-gitops/argocd/gitops-controller-admin.yaml
 # 2. Operators: RHDH, Service Mesh 3, Kiali, Dev Spaces from OperatorHub; CNPG from this repo
 oc apply -k RHDH/components/cnpg/base
 
-# 3. Test tools, secret store and the Dev Spaces shard (this repo)
-oc apply -f RHDH/argocd/apps/external-secrets.yaml -f RHDH/argocd/apps/vault.yaml \
-         -f RHDH/argocd/apps/ldap.yaml -f RHDH/argocd/apps/jenkins.yaml \
-         -f RHDH/argocd/apps/ingress-shard.yaml
-RHDH/tools/install/deploy.sh          # Vault root token, Jenkins/Sonar tokens
-# seed-vault.py COPIES an existing rhdh/rhdh-secrets into Vault. On a new
-# cluster create that Secret first, from
-# rhdh-platform-gitops/examples/rhdh-secrets.example.yaml with real values.
-python3 RHDH/scripts/seed-vault.py    # secrets/rhdh/* in Vault + external-secrets/vault-eso-token
-# external-secrets.yaml also defines the vault-secret-store Application
-# (tools/eso), so the ClusterSecretStore needs no separate apply.
+# 3. LDAP first, because its admin password goes into the bootstrap Secret.
+#    deploy.sh creates ldap/openldap-admin with a random password, then the directory.
+RHDH/tools/ldap/deploy.sh
 
-# 4. Set the cluster domain, then the custom resources
+# 4. Namespace and bootstrap Secret. Both secret scripts READ rhdh/rhdh-secrets,
+#    so it must exist before either runs. Fill a copy of the example; do not commit it.
+#    LDAP_BIND_PASSWORD is the value in ldap/openldap-admin. No script copies it.
+oc create namespace rhdh
+oc -n rhdh apply -f my-rhdh-secrets.yaml   # from rhdh-platform-gitops/examples/rhdh-secrets.example.yaml
+
+# 5. Test tools. deploy.sh applies Jenkins, SonarQube, Vault and saas-stubs,
+#    waits for them, then merges their tokens into rhdh/rhdh-secrets.
+RHDH/tools/install/deploy.sh
+
+# 6. External Secrets and the secret store, then copy the Secret into Vault.
+#    seed-vault.py needs the external-secrets namespace and writes vault-eso-token there.
+oc apply -f RHDH/argocd/apps/external-secrets.yaml   # also defines the vault-secret-store Application
+python3 RHDH/scripts/seed-vault.py
+
+# 7. The Dev Spaces shard, and hand LDAP to Argo CD
+oc apply -f RHDH/argocd/apps/ingress-shard.yaml -f RHDH/argocd/apps/ldap.yaml
+
+# 8. Set the cluster domain, then the custom resources
 #    rhdh-platform-gitops/charts/developer-hub/values-deploy.yaml  app.clusterBaseDomain, devspacesBaseUrl
 #    rhdh-platform-gitops/charts/devspaces/values-deploy.yaml      networking.domain
 #    RHDH/tools/ingress-shard/ingresscontroller.yaml               spec.domain
 oc apply -f rhdh-platform-gitops/argocd/app-of-apps.yaml
 ```
+
+Three things about this order:
+
+- **Step 5 needs all four tools.** `wire-rhdh-secrets.py` reads the SonarQube and saas-stubs Routes and stops if either is missing, so `deploy.sh` cannot be used to install only Jenkins and Vault.
+- **A rebuild therefore ends with SonarQube and saas-stubs running**, which the current cluster does not have (see [In the repos but not on the cluster](#in-the-repos-but-not-on-the-cluster)). Either they were removed here after bootstrap or this cluster was wired another way. Decide which state is wanted: keep them and the plugin status table applies again, or delete the two namespaces afterwards and it does not.
+- **From step 8 the Secret belongs to External Secrets.** The Hub chart renders an `ExternalSecret` with `creationPolicy: Owner`, which takes over `rhdh/rhdh-secrets` and refreshes it from Vault. Vault runs in `-dev` mode, in memory: if its pod restarts, run `deploy.sh` and `seed-vault.py` again, or the next refresh has nothing to read.
 
 Do **not** apply `RHDH/argocd/apps/cnpg.yaml` or `RHDH/argocd/apps/developer-hub.yaml` together with the app-of-apps. Both repos can create the `Cluster` and the `Backstage` CR; only `rhdh-platform-gitops` should.
 
