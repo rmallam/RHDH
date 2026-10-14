@@ -24,6 +24,29 @@ Reuse this on the next cluster. Hub must **not** use the operator-bundled `backs
 
 Switching off the local DB **wipes Hub state** (catalog, sessions, scaffolder history). LDAP and catalog locations re-import. There is no dump/restore in this lab path.
 
+## What runs on sandbox3257 (2026-10-14)
+
+Same pattern, two differences from the table above: the `Cluster` CR now comes from `rmallam/rhdh-platform-gitops` (`charts/cnpg`, Argo app `cnpg`), and the Hub chart there has `database.cnpg.enabled: false` so it only reads the Secret.
+
+| Piece | Value |
+|---|---|
+| Operator | `cloudnative-pg.v1.30.1`, channel `stable-v1`, `cnpg-system` |
+| Cluster CR | `rhdh-pg` in `rhdh`, 1 instance, 10Gi on `gp3-csi`, `max_connections` 200 |
+| Postgres image | `ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie` — **PostgreSQL 18.6** |
+| Why 18 | `cluster.imageName` is empty, so the operator filled in its own default. Nobody chose 18 |
+| Plugin schemas | 28 plugin schemas in database `app` (`pluginDivisionMode: schema`). Contents: [rhdh-database](../rhdh-database/README.md) |
+| Connections | 51 from one Hub replica, against `max_connections` 200 |
+| Backup | None. No `ScheduledBackup`, no object store |
+
+**Pin `imageName`.** With it empty, the Postgres major version is whatever the installed operator release defaults to, and an operator upgrade changes that default for every cluster created afterwards. Check the major version against the RHDH supported-configurations page for the release in use before pinning; do not assume the operator default is one RHDH supports.
+
+```bash
+oc -n rhdh get cluster.postgresql.cnpg.io rhdh-pg -o jsonpath='{.status.image}{"\n"}'
+oc -n rhdh exec rhdh-pg-1 -c postgres -- psql -U postgres -tAc 'select version();'
+```
+
+Moving **down** a major version (18 to 17) cannot be done in place: `pg_upgrade` only goes up. Either create a new `Cluster` on the target version and import a logical dump, or, on a lab, delete and recreate the `Cluster` and let LDAP and the catalog locations re-import (this wipes Hub state, as the cutover above did). Moving **up** is an offline operation in recent CNPG releases; check the operator's major-upgrade documentation and plan a Hub outage.
+
 ## File map
 
 | Path | Owns |
@@ -133,6 +156,9 @@ Catalog empty for a few minutes after cutover is normal (LDAP + locations). Sign
 | 1 instance | `database.cnpg.instances: 2` or `3` |
 | `ssl.rejectUnauthorized: false` | mount Secret `rhdh-pg-ca` (`ca.crt`) via `extraFiles.secrets` and set `rejectUnauthorized: true` |
 | No object-store backup | add CNPG `ScheduledBackup` + Barman plugin when the bank has a bucket |
+| `imageName: ""` (operator default, PostgreSQL 18.6 today) | pin the image and major version the customer has approved |
+| `Cluster` in the Hub namespace | a separate database namespace if the platform requires one; the Hub then reads `rhdh-pg-app` across namespaces, so copy or sync the Secret |
+| Operator from OLM (`certified-operators`) | some platforms install certified operators from the upstream Helm chart instead; the CRDs and the `Cluster` CR are the same, the install and upgrade path are not |
 | Helm applied by hand | same values via Argo `developer-hub-demo` / `developer-hub` |
 
 Do **not** install a second Subscription in `rhdh`. Operator stays in `cnpg-system`.
@@ -154,3 +180,4 @@ docs/rhdh-cnpg/tests/test-docs.sh
 | — | `password authentication failed` / SSL | Check key `username` (not only `user`); lab SSL `rejectUnauthorized: false` |
 | — | Empty catalog after cutover | Expected; LDAP + locations re-sync |
 | — | `backstage-psql-*` still Running | Operator may leave the old STS; delete STS + PVC after Hub is healthy on CNPG |
+| 2026-10-14 | `Namespace/rhdh` flips between two label sets; `developer-hub` Application OutOfSync | `charts/cnpg` and `charts/developer-hub` (in `rhdh-platform-gitops`) both render the namespace. Set `createNamespace: false` in `charts/cnpg/values.yaml`. Side effect and detail: [service-mesh-ambient](../service-mesh-ambient/README.md#known-issues) |
