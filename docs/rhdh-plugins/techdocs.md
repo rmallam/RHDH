@@ -18,7 +18,7 @@ No extra secrets. Kitchen-sink annotation is present; that entity has no mkdocs 
 
 ## Where the generated docs live
 
-`publisher: local` writes the generated site to a `static` directory inside the Hub pod. It is not in PostgreSQL: the `techdocs` schema holds no content (see [rhdh-database](../rhdh-database/README.md)), and TechDocs has no database publisher. The publisher types are `local`, `awsS3`, `googleGcs` and `azureBlobStorage`.
+`publisher: local` writes the generated site to a `static` directory inside the Hub pod. It is not in PostgreSQL: the `techdocs` schema holds no content (see [rhdh-database](../rhdh-database/README.md)), and TechDocs has no database publisher. The publisher types are `local`, `awsS3`, `googleGcs`, `azureBlobStorage` and `openStackSwift`: a pod directory or an object store, nothing else.
 
 On this lab that is fine: one replica, and a rebuild on first view after a restart is quick. It does not scale past one replica:
 

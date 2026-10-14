@@ -2,7 +2,9 @@
 
 **Status:** Cloud broken (modules fail to load). Server loads, not exercised.
 
-Catalog + scaffolder modules for Bitbucket. Cloud and Server are four separate packages, and they fail independently. A customer running Bitbucket Server (Data Center) needs only the two Server modules and can leave the Cloud ones disabled.
+Catalog + scaffolder modules for Bitbucket. Cloud and Server are four separate packages, and they fail independently. A customer running Bitbucket Server (Data Center) needs only the two Server modules.
+
+**The chart cannot enable Server on its own today.** All four packages hang off the single switch `plugins.bitbucket.enabled` (`charts/developer-hub/templates/configmap-dynamic-plugins.yaml`, the four Bitbucket entries), so turning Bitbucket on also loads the two Cloud modules. They fail at start-up with the error below; the Hub still starts and the Server modules still load. Running Server only needs a separate switch per pair in that template, or the two Cloud entries removed from it.
 
 ## Required (when unblocked)
 

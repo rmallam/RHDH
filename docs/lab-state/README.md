@@ -153,6 +153,11 @@ RHDH/tools/install/deploy.sh
 # 6. External Secrets and the secret store, then copy the Secret into Vault.
 #    seed-vault.py needs the external-secrets namespace and writes vault-eso-token there.
 oc apply -f RHDH/argocd/apps/external-secrets.yaml   # also defines the vault-secret-store Application
+#    Applying the file only creates the Applications. Wait until Argo CD has
+#    reconciled the operator and the namespace exists before seeding.
+oc -n openshift-gitops wait application/external-secrets \
+  --for=jsonpath='{.status.health.status}'=Healthy --timeout=600s
+oc get namespace external-secrets
 python3 RHDH/scripts/seed-vault.py
 
 # 7. The Dev Spaces shard, and hand LDAP to Argo CD
