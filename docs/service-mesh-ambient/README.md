@@ -2,7 +2,7 @@
 
 What the mesh chart installs, how a namespace joins the mesh, and what still has to be built before this proves anything about traffic. Chart: `rmallam/rhdh-platform-gitops`, `charts/service-mesh`. Argo app: `service-mesh`.
 
-**Update this file when a workload is enrolled, a policy is added, or an enrolment fails.** As of 2026-10-15 `routingViaHost` is `true` and one sample namespace, `bookinfo`, is enrolled with a waypoint. Its pods pass their probes under ztunnel and ztunnel logs show its connections completing. There is still no mTLS or authorization policy. Read [Not proven yet](#not-proven-yet) before quoting this lab as evidence that ambient works.
+**Update this file when a workload is enrolled, a policy is added, or an enrolment fails.** As of 2026-10-15 `routingViaHost` is `true` and one sample namespace, `bookinfo`, is enrolled with a waypoint. Its pods pass their probes under ztunnel and ztunnel logs show its connections completing. There is still no mTLS or authorization policy. **sandbox3257 expired on 2026-10-16**, and `bookinfo` and the `routingViaHost` patch were not in git, so both have to be redone on the new cluster. Read [Not proven yet](#not-proven-yet) before quoting this lab as evidence that ambient works.
 
 ## What runs on sandbox3257
 

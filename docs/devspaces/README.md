@@ -66,6 +66,62 @@ oc -n <username>-devspaces get networkpolicy
 
 User namespaces get `allow-from-openshift-devspaces`, `allow-from-devworkspace-operator`, `allow-from-openshift-ingress`, `allow-from-openshift-monitoring`, `allow-from-same-namespace` and `allow-all-egress`. Ingress is closed by default; **egress is open**. A workspace can reach anything the cluster can. Restricting egress is extra work the chart does not do.
 
+### When the Che namespace denies egress
+
+A customer cluster may already carry an egress-deny policy in the namespaces it creates. On sandbox3257 this was `deny-egress-to-other-namespaces` in `dw-ns-admin`. The Che gateway (port 3030) then cannot reach the editor (port 3100) in a workspace namespace, and the IDE never opens. Add one item under that policy's `spec.egress`, with no `ports` list, and leave the existing allows (DNS, authentication, the API server) as they are:
+
+```yaml
+- to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/component: workspaces-namespace
+          app.kubernetes.io/part-of: che.eclipse.org
+```
+
+On the customer cluster the same item goes on the egress policy in their Che namespace (`openshift-devspaces` for a normal install). If a workspace namespace also denies ingress, it needs ingress from the Che namespace, from `openshift-ingress` (the IDE Route and health check) and from itself:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-workspace-ingress
+  namespace: <username>-devspaces
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-ingress
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-devspaces   # the CheCluster namespace
+    - from:
+        - podSelector: {}
+```
+
+`spec.networking.networkPolicy.enabled: true` on the `CheCluster` makes the operator create equivalent policies itself.
+
+### Mirroring the workspace image with its signature
+
+When workspace images come from a mirror (Artifactory in a disconnected install), copy the signature with the image, or signature verification fails on the mirror. For the UDI:
+
+```bash
+SRC=registry.redhat.io/devspaces/udi-rhel9:3.30-1787764814
+DST=artifactory.example.com/redhat/devspaces/udi-rhel9:3.30-1787764814
+skopeo login registry.redhat.io
+skopeo login artifactory.example.com
+skopeo copy --all --preserve-digests docker://$SRC docker://$DST
+DIGEST=$(skopeo inspect docker://$SRC | jq -r .Digest)
+SIG=sha256-${DIGEST#sha256:}.sig
+skopeo copy docker://registry.redhat.io/devspaces/udi-rhel9:$SIG \
+  docker://artifactory.example.com/redhat/devspaces/udi-rhel9:$SIG
+```
+
+`--preserve-digests` keeps the digest the signature refers to. Source: `notes.md`.
+
 ## The ingress shard
 
 Dev Spaces publishes a Route per workspace endpoint, on top of the dashboard. A shard keeps those off the default router and gives them their own wildcard domain and load balancer.
@@ -159,4 +215,5 @@ docs/devspaces/tests/test-docs.sh
 | — | Dashboard reachable on two routers | `default-exclude-shard.yaml` not applied |
 | — | Second workspace stuck in `ContainerCreating` on `claim-devworkspace`, sometimes but not always | The RWO per-user volume is attached to another node. Pods on the same node share it; pods on different nodes cannot. Keep `maxRunningWorkspacesPerUser: 1` or move to RWX |
 | — | Workspace will not restart after a node drain | RWO volume is in another availability zone |
+| 2026-10-15 | IDE never opens; the Che gateway cannot reach the workspace on 3030 / 3100 | An egress-deny NetworkPolicy in the Che namespace. Add the workspace-namespace egress item above |
 | — | Template "Open in Dev Spaces" links point at the wrong host | The Hub takes them from `devspacesBaseUrl` in `charts/developer-hub/values-deploy.yaml`. It is a separate value from the `CheCluster` domain and does not follow it |

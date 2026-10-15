@@ -2,6 +2,8 @@
 
 One page for the current cluster. The other runbooks say how each piece is built; this one says what is deployed right now, in what version, and which parts of the repos are **not** on the cluster.
 
+> **2026-10-16: sandbox3257 has expired.** Its DNS names no longer resolve, and a new RHDP cluster is being built. Everything below records sandbox3257 as last seen on 2026-10-15. Re-record this page on the new cluster. Everything in [On the cluster but not in git](#on-the-cluster-but-not-in-git) went with sandbox3257 and has to be redone by hand.
+
 **Update this file after every rebuild or operator upgrade.** The older runbooks still name the first cluster (`rosa-89s85`). Treat a cluster name in any doc as "where this was last proven", not as the current lab.
 
 ## Cluster
@@ -58,7 +60,7 @@ oc get subscriptions.operators.coreos.com -A \
 | `Keycloak/keycloak` | `keycloak` | Route `sso.apps…`; not used by the Hub (Keycloak catalog plugin is disabled) |
 | OpenLDAP | `ldap` | `osixia/openldap:1.5.0`, `emptyDir`, 3 users / 3 groups |
 | Jenkins, Vault | `jenkins`, `vault` | Test installs from `tools/` |
-| Squid | `squid` | `ubuntu/squid:6.6-24.04_edge`, port 3128, basic auth (htpasswd from Vault), allow-list of SaaS hosts, `anyuid` SCC. Stand-in for an authenticated corporate proxy. The Hub does not use it yet: `httpProxy.enabled: false` |
+| Squid | `squid` | `ubuntu/squid:6.6-24.04_edge`, port 3128, basic auth (htpasswd from Vault), allow-list of SaaS hosts, `anyuid` SCC. Stand-in for an authenticated corporate proxy. Since 2026-10-15 the Hub uses it for ServiceNow only (`httpProxy.enabled: true`, everything else in `NO_PROXY`) |
 | `bookinfo` sample | `bookinfo` | 6 Deployments plus a waypoint, enrolled in ambient. Applied by hand, not in git. See [service-mesh-ambient](../service-mesh-ambient/README.md#not-proven-yet) |
 
 Hub plugin versions and load status are in [rhdh-plugins](../rhdh-plugins/README.md#installed-on-sandbox3257). What the database holds, schema by schema, is in [rhdh-database](../rhdh-database/README.md).
@@ -97,7 +99,7 @@ Do not assume a manifest in git is deployed.
 |---|---|---|
 | `argocd/apps/sonarqube.yaml`, `tools/sonarqube` | Not applied; no `sonarqube` namespace | Hub is configured for `http://sonarqube.sonarqube.svc:9000` and gets nothing back |
 | `argocd/apps/saas-stubs.yaml`, `tools/saas-stubs` | Not applied; no `saas-stubs` namespace | APIC and Artifactory cards have no backend. Jira, Dynatrace and ServiceNow no longer use the stubs: they point at real developer tenants (ServiceNow since 2026-10-15, URL and credentials from Vault). The plugin status table was recorded when the stubs were running |
-| `tools/install/wire-rhdh-secrets.py` | Sets `SERVICENOW_BASE_URL` to the `saas-stubs` URL | After a rebuild, overwrite Vault key `servicenow-base-url` with the developer instance URL, or the ServiceNow tab goes back to the stub |
+| `tools/install/wire-rhdh-secrets.py` | Sets `SERVICENOW_BASE_URL`, `SERVICENOW_USERNAME` and `SERVICENOW_PASSWORD` to stub values, and `scripts/seed-vault.py` copies all three into Vault | After a rebuild, overwrite all three `secrets/rhdh/servicenow-*` keys after seeding, wait for External Secrets to refresh `rhdh-secrets`, then restart the Hub. See [servicenow](../rhdh-plugins/servicenow.md) |
 | `docs/rhdh-disconnected-plugins/plugins-oci.txt` (target pins) | Older pins still loaded | See [rhdh-plugins](../rhdh-plugins/README.md#installed-on-sandbox3257) |
 | Catalog locations on `rmallam/RHDH-SM-DevSpaces` | Repo returns 404 without credentials | The three Dev Spaces templates (`template-node-udi-devspaces`, `template-start-feature-devspaces`, `template-open-devspaces-namespace`) do not load for anyone outside that repo |
 | Snyk plugin | Not loaded | The self-exported image is private; commit `abc1bbd` skips it |
@@ -111,7 +113,7 @@ A rebuild from the repos will not bring these back.
 | `routingViaHost: true` | `oc patch networks.operator.openshift.io cluster`, 2026-10-14 (command in `notes.md`) | Make it a rebuild step, before the mesh chart syncs |
 | `bookinfo` namespace, Deployments and waypoint | Applied by hand, 2026-10-14 | Add it to `rhdh-platform-gitops` with its policies |
 | Catalog location `https://github.com/rmallam/drtest/tree/main/catalog-info.yaml` (`component:default/drtest`) | Registered through the Hub UI, so it lives only in table `catalog.locations` | Add it to `catalog.locations` in the Hub chart values; a database rebuild drops it |
-| Vault key `secrets/squid/htpasswd`, and the ServiceNow developer-instance values in `servicenow-base-url`, `servicenow-username`, `servicenow-password` | Written to Vault by hand. `scripts/seed-vault.py` does not write the Squid key | Script or document the seeding. Vault runs in `-dev` mode, so a pod restart loses them |
+| Vault key `secrets/squid/htpasswd`, the proxy keys `rhdh/http-proxy`, `rhdh/https-proxy`, `rhdh/no-proxy`, and the ServiceNow developer-instance values in `servicenow-base-url`, `servicenow-username`, `servicenow-password` | Written to Vault by hand. `scripts/seed-vault.py` does not write the Squid key | Script or document the seeding. Vault runs in `-dev` mode, so a pod restart loses them |
 | Operator Subscriptions for RHDH, Service Mesh 3, Kiali, Dev Spaces, OpenShift GitOps, RHBK, cert-manager | OperatorHub. Only CloudNativePG has manifests here (`components/cnpg`, applied with `oc apply -k`) | Add Subscription and OperatorGroup manifests in the LLD's shape (own namespace, Manual approval, starting CSV) |
 | Second DevWorkspace Subscription, in `openshift-devspaces` | Unknown; a duplicate of the one in `openshift-operators` | Check which one Dev Spaces needs and remove the other |
 | `Keycloak/keycloak` with `keycloak-pgsql`, namespace `keycloak` | Not in either repo. The Hub does not use it (the Keycloak catalog plugin is disabled) | Remove it, or add it if a later test needs it |
@@ -124,7 +126,7 @@ The `letsencrypt-production-aws-fallback` and `zerossl-production-aws` ClusterIs
 |---|---|
 | Mesh workloads | `bookinfo` only, by hand. ztunnel logs show its connections completing. `Istio` reports `IN USE 1`. See [service-mesh-ambient](../service-mesh-ambient/README.md) |
 | Mesh policy | No `PeerAuthentication`, `AuthorizationPolicy` or ingress `Gateway`. One waypoint, in `bookinfo` |
-| Hub through the proxy | Squid is running, but `httpProxy.enabled` is false, so no Hub call goes through it yet |
+| Hub through the proxy for everything | ServiceNow goes through Squid since 2026-10-15. Entra sign-in, Jira and Dynatrace are still in `NO_PROXY`, so Entra through an authenticated proxy is not yet proven |
 | User workload monitoring | Off. The mesh `ServiceMonitor` and `PodMonitor` are not scraped |
 | Tekton | No Pipelines operator, so the Tekton plugin has nothing to show |
 | Second Argo CD instance | Only the default instance exists |
