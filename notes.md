@@ -48,3 +48,16 @@ oc get clusteroperator network
 Expect true, and network AVAILABLE=True / PROGRESSING=False after CNO finishes.
 
 ```
+```
+SRC=registry.redhat.io/devspaces/udi-rhel9:3.30-1787764814
+DST=artifactory.example.com/redhat/devspaces/udi-rhel9:3.30-1787764814
+skopeo login registry.redhat.io
+skopeo login artifactory.example.com
+skopeo copy --all --preserve-digests docker://$SRC docker://$DST
+DIGEST=$(skopeo inspect docker://$SRC | jq -r .Digest)
+SIG=sha256-${DIGEST#sha256:}.sig
+skopeo copy \
+  docker://registry.redhat.io/devspaces/udi-rhel9:$SIG \
+  docker://artifactory.example.com/redhat/devspaces/udi-rhel9:$SIG
+
+```
