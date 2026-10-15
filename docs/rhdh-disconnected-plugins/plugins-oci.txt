@@ -1,5 +1,5 @@
 # Customer plugin pin list vs RHDH 1.10 Dynamic Plugins Reference
-# (spreadsheet data.xls v.2). Overlay tags: bs_<Backstage>__<pluginVer>
+# (target pin list). Overlay tags: bs_<Backstage>__<pluginVer>
 # Backstage 1.49.4. Active lines are skopeo-copy targets.
 #
 # Also mirror: oci://registry.access.redhat.com/rhdh/plugin-catalog-index:1.10
@@ -10,7 +10,7 @@
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-plugin-catalog-backend-module-bitbucket-cloud:bs_1.49.4__0.5.9
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-plugin-catalog-backend-module-bitbucket-server:bs_1.49.4__0.5.9
 
-# --- 2 Kubernetes — bundled (versions match spreadsheet) ---
+# --- 2 Kubernetes — bundled (versions match the target pins) ---
 # Kubernetes Backend 0.21.2 → ./dynamic-plugins/dist/backstage-plugin-kubernetes-backend-dynamic
 # Kubernetes Scaffolder Module 2.17.1 → ./dynamic-plugins/dist/backstage-community-plugin-scaffolder-backend-module-kubernetes-dynamic
 
@@ -41,14 +41,14 @@ oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/pagerduty-backstage-p
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/pagerduty-backstage-plugin:bs_1.49.4__0.19.0
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/pagerduty-backstage-plugin-scaffolder-actions:bs_1.49.4__0.2.9
 
-# --- 9 Vault — spreadsheet backend 0.27.0 / frontend 0.25.0 ---
+# --- 9 Vault — target backend 0.27.0 / frontend 0.25.0 ---
 # Not in the RHDH 1.10 extras table. Live Helm chart still uses pr_1225 (0.21.0 / 0.19.0)
 # until these bs_ tags exist on GHCR.
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault-backend:bs_1.49.4__0.27.0
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault:bs_1.49.4__0.25.0
 
 # --- 10 Argo CD — community backend 1.4.0 + frontend 2.8.1 ---
-# Spreadsheet listed frontend 2.8.0; RHDH 1.10 publishes 2.8.1.
+# Target listed frontend 2.8.0; RHDH 1.10 publishes 2.8.1.
 # Replaces Roadie backend 4.6.0 + community frontend 2.4.4.
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-argocd-backend:bs_1.49.4__1.4.0
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-argocd:bs_1.49.4__2.8.1
@@ -57,13 +57,13 @@ oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-scaffolder-b
 # --- 11 Dynatrace 10.17.0 ---
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-dynatrace:bs_1.49.4__10.17.0
 
-# --- 12 API Connect 1.0.0 (spreadsheet). Helm chart currently loads 1.0.3. ---
+# --- 12 API Connect 1.0.0 (target). Helm chart currently loads 1.0.3. ---
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/apic-backstage:bs_1.49.4__1.0.0
 
 # --- 13 DX (Developer Experience) 1.0.0 ---
 # No Red Hat overlay. Upstream is npm @get-dx/backstage-plugin@1.0.0.
 
-# --- 14 ServiceNow — spreadsheet TBD; published RHDH 1.10 pins below ---
+# --- 14 ServiceNow — target TBD; published RHDH 1.10 pins below ---
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-scaffolder-backend-module-servicenow:bs_1.49.4__2.15.1
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-servicenow-backend:bs_1.49.4__1.10.0
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-servicenow:bs_1.49.4__1.10.0
@@ -71,7 +71,7 @@ oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-p
 # --- 15 LDAP Catalog Backend 0.12.3 — bundled ---
 # ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-ldap-dynamic
 
-# --- extras used by this platform (not on the spreadsheet) ---
+# --- extras used by this platform (not on the target pin list) ---
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-tekton:bs_1.45.3__3.33.3
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/dynatrace-backstage-plugin-dql:bs_1.49.4__2.7.0
 oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/dynatrace-backstage-plugin-dql-backend:bs_1.49.4__2.7.0

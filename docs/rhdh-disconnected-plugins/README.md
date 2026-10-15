@@ -27,7 +27,7 @@ docs/rhdh-disconnected-plugins/
 | **Bundled** | `./dynamic-plugins/dist/…` | None. Already inside the RHDH operand image. Mirror **that image** with `oc-mirror` like any other OpenShift payload. |
 | **OCI** | `oci://registry…/name:tag` | Mirror the artifact to the internal registry. Mount `registries.conf` on `install-dynamic-plugins`. |
 
-The **full install list** is `manifests/dynamic-plugins.yaml` (and the table in `plugins-inventory.md`). `plugins-oci.txt` is the customer spreadsheet pin list plus extras that are **not** inside the RHDH image. Kubernetes and LDAP match the spreadsheet but stay bundled (`./dynamic-plugins/dist/…`).
+The **full install list** is `manifests/dynamic-plugins.yaml` (and the table in `plugins-inventory.md`). `plugins-oci.txt` is the target pin list plus extras that are **not** inside the RHDH image. Kubernetes and LDAP match the target pins but stay bundled (`./dynamic-plugins/dist/…`).
 
 OCI extras that **must** be mirrored: Bitbucket catalog, Jenkins (FE/BE/scaffolder), Argo CD, SonarQube (UI + scaffolder + utils), Snyk, Jira, Artifactory, PagerDuty, Tekton, **Vault**, **ServiceNow**, **Dynatrace** (+ DQL), **Kiali**, **IBM API Connect**.
 

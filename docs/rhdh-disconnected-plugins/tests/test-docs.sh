@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Unit: plugins-oci.txt pins match the customer spreadsheet (data.xls v.2)
+# Unit: plugins-oci.txt pins match the target pin list
 # plus RHDH 1.10 / Backstage 1.49.4 overlay names.
 # System: every active oci:// line is a well-formed GHCR overlay URL the
 #         mirror script can parse; inventory table still names the file.
@@ -18,7 +18,7 @@ need() {
   fi
 }
 
-# Spreadsheet rows 1–15 (plugin + version). Kubernetes/LDAP/DX are comments.
+# Target pins 1–15 (plugin + version). Kubernetes/LDAP/DX are comments.
 need "backstage-plugin-catalog-backend-module-bitbucket-cloud:bs_1.49.4__0.5.9"
 need "backstage-plugin-catalog-backend-module-bitbucket-server:bs_1.49.4__0.5.9"
 need "Kubernetes Backend 0.21.2"
@@ -72,7 +72,7 @@ else
 fi
 
 if grep -Fq "plugins-oci.txt" "$INV" && grep -Fq "0.5.9" "$INV"; then
-  echo "OK  inventory lists spreadsheet pins"
+  echo "OK  inventory lists target pins"
 else
   echo "FAIL inventory missing plugins-oci.txt / 0.5.9"
   fail=1
