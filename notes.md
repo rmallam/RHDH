@@ -34,3 +34,17 @@ That Secret is the certificate the router serves for the ExternalDNS name. Its s
 
 Dev Spaces Routes are always edge TLS, with HTTP redirected to HTTPS. There is no setting for passthrough or re-encrypt. tlsSecretName only supplies the certificate on that edge Route.
 ```
+
+```
+On the hosted cluster kubeconfig:
+
+
+oc patch networks.operator.openshift.io cluster --type=merge -p '{"spec":{"defaultNetwork":{"ovnKubernetesConfig":{"gatewayConfig":{"routingViaHost":true}}}}}'
+Check it:
+
+
+oc get networks.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.gatewayConfig.routingViaHost}{"\n"}'
+oc get clusteroperator network
+Expect true, and network AVAILABLE=True / PROGRESSING=False after CNO finishes.
+
+```
