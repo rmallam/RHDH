@@ -1,6 +1,6 @@
 # Plugin inventory
 
-`plugins-oci.txt` is the customer pin list (spreadsheet data.xls v.2) plus extras this platform loads. Kubernetes and LDAP **match the spreadsheet** but stay bundled in the RHDH image, so they are comments only. Everything else with an overlay is an `oci://` line.
+`plugins-oci.txt` is the target pin list plus extras this platform loads. Kubernetes and LDAP **match the target pins** but stay bundled in the RHDH image, so they are comments only. Everything else with an overlay is an `oci://` line.
 
 | Needed (HLD) | Plugin | Pin | In `plugins-oci.txt`? |
 |---|---|---|---|
@@ -34,7 +34,7 @@ Also mirror, separately from this table:
 
 ## Tag pin (confirm before freeze)
 
-New OCI lines use **RHDH 1.10 / Backstage 1.49.4** tags from the Dynamic Plugins Reference where Red Hat publishes them. Vault spreadsheet pins are `0.27.0` / `0.25.0` — run `skopeo list-tags` on GHCR if those `bs_` tags are missing (live chart still uses `pr_1225`). IBM APIC spreadsheet pin is `1.0.0`. Argo CD frontend spreadsheet said `2.8.0`; published tag is `2.8.1`. DX 1.0.0 has no overlay (`@get-dx/backstage-plugin` on npm).
+New OCI lines use **RHDH 1.10 / Backstage 1.49.4** tags from the Dynamic Plugins Reference where Red Hat publishes them. Vault target pins are `0.27.0` / `0.25.0` — run `skopeo list-tags` on GHCR if those `bs_` tags are missing (live chart still uses `pr_1225`). IBM APIC target pin is `1.0.0`. Argo CD frontend target said `2.8.0`; published tag is `2.8.1`. DX 1.0.0 has no overlay (`@get-dx/backstage-plugin` on npm).
 
 Secrets for these four integrations: `manifests/plugin-secrets.example.yaml`. Merge into `rhdh-secrets`. Vault token must be **LIST-only**.
 

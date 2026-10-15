@@ -159,7 +159,7 @@ plugins:
   - package: ./dynamic-plugins/dist/backstage-plugin-rbac
     disabled: false
 
-  # HashiCorp Vault — LIST-only K/V v2 (req 43). Token must not allow secret payload read.
+  # HashiCorp Vault — LIST-only K/V v2. Token must not allow secret payload read.
   - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-vault-backend:bs_1.49.4__0.31.0
     disabled: false
     pluginConfig:
