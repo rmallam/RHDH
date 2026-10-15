@@ -116,3 +116,11 @@ spec:
   - from:
     - podSelector: {}
 ```
+To have the operator create these, on CheCluster:
+
+```
+spec:
+  networking:
+    networkPolicy:
+      enabled: true
+```
