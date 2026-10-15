@@ -20,6 +20,17 @@ spec:
     {{- if .Values.database.cnpg.storageClass }}
     storageClass: {{ .Values.database.cnpg.storageClass | quote }}
     {{- end }}
+  {{- if .Values.database.cnpg.backup.enabled }}
+  backup:
+    target: {{ .Values.database.cnpg.backup.target | quote }}
+    volumeSnapshot:
+      className: {{ .Values.database.cnpg.backup.volumeSnapshot.className | quote }}
+      online: {{ .Values.database.cnpg.backup.volumeSnapshot.online | quote }}
+      onlineConfiguration:
+        immediateCheckpoint: {{ .Values.database.cnpg.backup.volumeSnapshot.onlineConfiguration.immediateCheckpoint | quote }}
+        waitForArchieve: {{ .Values.database.cnpg.backup.volumeSnapshot.onlineConfiguration.waitForArchive | quote }}
+        snapshotOwnerReference: {{ .Values.database.cnpg.backup.volumeSnapshot.onlineConfiguration.snapshotOwnerReference | quote }}
+  {{- end }}
   postgresql:
     parameters:
       max_connections: {{ .Values.database.cnpg.maxConnections | quote }}
