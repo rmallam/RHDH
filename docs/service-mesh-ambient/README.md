@@ -4,6 +4,15 @@ What the mesh chart installs, how a namespace joins the mesh, and what still has
 
 **Update this file when a workload is enrolled, a policy is added, or an enrolment fails.** As of 2026-10-15 `routingViaHost` is `true` and one sample namespace, `bookinfo`, is enrolled with a waypoint. Its pods pass their probes under ztunnel and ztunnel logs show its connections completing. There is still no mTLS or authorization policy. **sandbox3257 expired on 2026-10-16**, and `bookinfo` and the `routingViaHost` patch were not in git, so both have to be redone on the new cluster. Read [Not proven yet](#not-proven-yet) before quoting this lab as evidence that ambient works.
 
+## Hosted control planes (ROSA HCP, 2026-10-16)
+
+The replacement lab is a ROSA cluster with hosted control planes, the same model as the customer's clusters. Two things are now shown on it:
+
+- **`routingViaHost` can be set from the hosted cluster.** `oc patch networks.operator.openshift.io cluster …` with the hosted cluster's own kubeconfig was accepted, and both worker nodes report `mode: local` in their `k8s.ovn.org/l3-gateway-config` annotation. The field is also managed by `hosted-cluster-config-operator`, so check it is still `true` after a cluster upgrade.
+- **The Hub and CloudNativePG run in ambient on it.** Namespace `rhdh` carries `istio.io/dataplane-mode: ambient`; the Hub pod and `rhdh-pg-1` are captured and Ready. On sandbox3257, before `routingViaHost` was set, the same enrolment left CloudNativePG never Ready.
+
+This lab is deployed from `rmallam/RHDH-SM-DevSpaces`, not from `rhdh-platform-gitops`, so the Hub is enrolled there although `values-deploy.yaml` here keeps it out. No mesh policy exists yet.
+
 ## What runs on sandbox3257
 
 | Piece | Value |

@@ -2,7 +2,42 @@
 
 One page for the current cluster. The other runbooks say how each piece is built; this one says what is deployed right now, in what version, and which parts of the repos are **not** on the cluster.
 
-> **2026-10-16: sandbox3257 has expired.** Its DNS names no longer resolve, and a new RHDP cluster is being built. Everything below records sandbox3257 as last seen on 2026-10-15. Re-record this page on the new cluster. Everything in [On the cluster but not in git](#on-the-cluster-but-not-in-git) went with sandbox3257 and has to be redone by hand.
+> **2026-10-16: sandbox3257 has expired.** Its DNS names no longer resolve. The lab now runs on a new cluster, recorded in [Current cluster: ROSA HCP](#current-cluster-rosa-hcp-2026-10-16) below. The sections after it record sandbox3257 as last seen on 2026-10-15. Everything in [On the cluster but not in git](#on-the-cluster-but-not-in-git) went with sandbox3257.
+
+## Current cluster: ROSA HCP (2026-10-16)
+
+Recorded read-only on 2026-10-16, about two hours after it was built.
+
+| | |
+|---|---|
+| Cluster | ROSA with hosted control planes, `rosa-rwx5g.f8y9.p3.openshiftapps.com`, AWS `us-east-2` |
+| API | `https://api.rosa-rwx5g.f8y9.p3.openshiftapps.com:443` (port 443, not 6443) |
+| Apps domain | `apps.rosa.rosa-rwx5g.f8y9.p3.openshiftapps.com` |
+| Control plane | **Hosted.** `controlPlaneTopology: External`; no control-plane nodes, no etcd pods, no MachineConfigPools. This is the same model as the customer's hosted clusters |
+| OpenShift | 4.20.40 |
+| Nodes | 2 workers, `m6a.xlarge`, both in `us-east-2a` |
+| Default StorageClass | `gp3-csi` |
+| OVN-Kubernetes gateway mode | `routingViaHost: true`, set with `oc patch` from the hosted cluster's own kubeconfig. Both nodes report `mode: local` in `k8s.ovn.org/l3-gateway-config`, so the change took effect |
+| Cluster proxy | None |
+
+**Deployed from a different repo.** All 13 Argo CD Applications read `rmallam/RHDH-SM-DevSpaces` (private), not this repo or `rhdh-platform-gitops`. The app-of-apps is `acme-gitops` at `argocd/apps`, and the paths follow that repo's layout (`components/…`, `demo/ldap`, `charts/developer-hub` with `values-rosa-rwx5g.yaml`). The pages in this repo describe the `rhdh-platform-gitops` layout; until the lab is deployed from it again, treat them as the target rather than the record.
+
+| Area | On this cluster |
+|---|---|
+| Operators | RHDH `v1.10.5` (`fast-1.10`), OSSM `v3.4.3` (`stable`), Kiali `v2.27.5`, Dev Spaces `v3.30.2` and DevWorkspace `v0.43.0` (both in `openshift-devspaces`), OpenShift GitOps `v1.22.2`, CloudNativePG `v1.30.1`. All Automatic. No RHBK, no cert-manager |
+| Argo CD | 13 Applications, all Healthy. `cnpg-operator`, `developer-hub` and `openshift-gitops-operator` Synced; `jenkins` and `acme-gitops` Unknown; the rest OutOfSync |
+| Why OutOfSync | The application controller is **not** bound to `cluster-admin` (step 1 of the rebuild order was skipped). Syncs of `openshift-service-mesh`, `openshift-devspaces`, `vault`, `ldap` and `ztunnel-healer` fail with `forbidden`. The resources were applied by hand (`kubectl-client-side-apply`), so they run but Argo CD cannot manage them. `acme-gitops` cannot compare: `.spec.source.kustomize.buildOptions: field not declared in schema`. `policy-as-code` is Missing: there is no Kyverno |
+| Hub | `Backstage/developer-hub` in `rhdh`, 1 replica, Running. `rhdh-secrets` is a plain Secret (51 keys); no External Secrets operator. `NODE_TLS_REJECT_UNAUTHORIZED=0` on the Hub. No HTTP proxy |
+| Database | CNPG `rhdh-pg`, **1 instance**, 10Gi, PostgreSQL 18.6, no backup, no DR cluster |
+| Catalog | 286 entities; LDAP 3 users and 3 groups; only the `bootstrap` location (no `drtest`) |
+| ServiceNow | Developer instance `dev374459.service-now.com`, called directly (no Squid on this cluster) |
+| Mesh | Ambient, `v1.30.5`, ztunnel in `ztunnel`. `rhdh` and `demo-dev` carry `istio.io/dataplane-mode: ambient`. **The Hub and its PostgreSQL pod are captured** (`ambient.istio.io/redirection: enabled`) and Ready. No `PeerAuthentication`, `AuthorizationPolicy` or `Gateway`. A `ztunnel-healer` CronJob runs every 5 minutes in `istio-mesh-tools` |
+| Dev Spaces | `CheCluster/devspaces` Active, `https://devspaces.apps.rosa.rosa-rwx5g.f8y9.p3.openshiftapps.com` (default router, no shard) |
+| Lab tools | OpenLDAP, Vault, Jenkins, SonarQube, saas-stubs running |
+| Not present | Squid, `rhdh-pg-dr`, External Secrets, `bookinfo`, Keycloak, the Dev Spaces ingress shard |
+| Known plugin error | Bitbucket Cloud modules: `Cannot find module '@backstage/plugin-bitbucket-cloud-common'` (Bitbucket Server modules unaffected) |
+
+## sandbox3257 (last seen 2026-10-15)
 
 **Update this file after every rebuild or operator upgrade.** The older runbooks still name the first cluster (`rosa-89s85`). Treat a cluster name in any doc as "where this was last proven", not as the current lab.
 
