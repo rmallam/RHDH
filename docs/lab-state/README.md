@@ -14,7 +14,8 @@ One page for the current cluster. The other runbooks say how each piece is built
 | OpenShift | 4.20.40 (Kubernetes v1.33.13) |
 | Nodes | 6 — 3 × `m5a.2xlarge`, 3 × `m6a.4xlarge` |
 | Default StorageClass | `gp3-csi` (RWO only; no RWX class) |
-| Recorded | 2026-10-14 |
+| OVN-Kubernetes gateway mode | `routingViaHost: true` (local gateway), set by hand on 2026-10-14. Not in git; the command is in `notes.md` |
+| Recorded | 2026-10-15 |
 
 The previous cluster, `rosa-89s85.bhg0.p3.openshiftapps.com`, is gone. `charts/developer-hub/values-demo.yaml` in **this** repo still points at it. The live Hub is deployed from `rmallam/rhdh-platform-gitops`, where `values-deploy.yaml` carries the current domain.
 
@@ -46,7 +47,8 @@ oc get subscriptions.operators.coreos.com -A \
 | What | Where | Version / shape |
 |---|---|---|
 | `Backstage/developer-hub` | `rhdh` | `rhdh.redhat.com/v1alpha5`, 1 replica, `enableLocalDb: false` |
-| CNPG `Cluster/rhdh-pg` | `rhdh` | 1 instance, 10Gi, **PostgreSQL 18.6** (`postgresql:18.6-system-trixie`), `max_connections` 200, no backup |
+| CNPG `Cluster/rhdh-pg` | `rhdh` | 3 instances, 10Gi each, **PostgreSQL 18.6** (`postgresql:18.6-system-trixie`), `max_connections` 200, no backup |
+| CNPG `Cluster/rhdh-pg-dr` | `rhdh-dr` | 3 instances, 10Gi each, same image. A separate cluster for DR testing; the Hub does not use it |
 | `Istio/default` | `istio-system` | `profile: ambient`, v1.30.5, `InPlace` |
 | `IstioCNI/default` | `istio-cni` | ambient, DaemonSet 6/6 |
 | `ZTunnel/default` | `ztunnel` | v1.30.5, DaemonSet 6/6 |
@@ -56,19 +58,23 @@ oc get subscriptions.operators.coreos.com -A \
 | `Keycloak/keycloak` | `keycloak` | Route `sso.apps…`; not used by the Hub (Keycloak catalog plugin is disabled) |
 | OpenLDAP | `ldap` | `osixia/openldap:1.5.0`, `emptyDir`, 3 users / 3 groups |
 | Jenkins, Vault | `jenkins`, `vault` | Test installs from `tools/` |
+| Squid | `squid` | `ubuntu/squid:6.6-24.04_edge`, port 3128, basic auth (htpasswd from Vault), allow-list of SaaS hosts, `anyuid` SCC. Stand-in for an authenticated corporate proxy. The Hub does not use it yet: `httpProxy.enabled: false` |
+| `bookinfo` sample | `bookinfo` | 6 Deployments plus a waypoint, enrolled in ambient. Applied by hand, not in git. See [service-mesh-ambient](../service-mesh-ambient/README.md#not-proven-yet) |
 
 Hub plugin versions and load status are in [rhdh-plugins](../rhdh-plugins/README.md#installed-on-sandbox3257). What the database holds, schema by schema, is in [rhdh-database](../rhdh-database/README.md).
 
 ## Argo CD applications
 
-One Argo CD instance (`openshift-gitops`). Eleven Applications.
+One Argo CD instance (`openshift-gitops`). Thirteen Applications, all Healthy. `RHDH` is public again, so the five Applications that read it sync without a repo credential.
 
-| Application | Repo | Path | State (2026-10-14) |
+| Application | Repo | Path | State (2026-10-15) |
 |---|---|---|---|
-| `idp-platform` | `rhdh-platform-gitops` | `argocd/apps` | Synced — app-of-apps for the four below |
+| `idp-platform` | `rhdh-platform-gitops` | `argocd/apps` | OutOfSync on its child Applications `cnpg-dr`, `devspaces`, `squid` — app-of-apps for the six below |
 | `cnpg` | `rhdh-platform-gitops` | `charts/cnpg` | Synced |
+| `cnpg-dr` | `rhdh-platform-gitops` | `charts/cnpg` + `values-dr.yaml` | Synced |
 | `service-mesh` | `rhdh-platform-gitops` | `charts/service-mesh` | Synced |
-| `devspaces` | `rhdh-platform-gitops` | `charts/devspaces` | Synced |
+| `squid` | `rhdh-platform-gitops` | `charts/squid` | Synced |
+| `devspaces` | `rhdh-platform-gitops` | `charts/devspaces` | OutOfSync on `CheCluster/devspaces` only |
 | `developer-hub` | `rhdh-platform-gitops` | `charts/developer-hub` | **OutOfSync** — see below |
 | `external-secrets` | `charts.external-secrets.io` | Helm chart | Synced |
 | `vault-secret-store` | `RHDH` | `tools/eso` | Synced |
@@ -79,7 +85,9 @@ One Argo CD instance (`openshift-gitops`). Eleven Applications.
 
 `developer-hub` shows OutOfSync on **one object only: the `rhdh` Namespace**. The application is at the repo HEAD and every other resource is Synced, so the Hub configuration in git is what is running.
 
-The Namespace is rendered by both the `cnpg` chart and the `developer-hub` chart. Both Applications use server-side apply under the same field manager (`argocd-controller`), so whichever syncs last owns the labels and the other's are dropped. Today `cnpg` wins: the namespace carries `app.kubernetes.io/name=cnpg` and has **lost `istio.io/dataplane-mode: ambient`**, which the Hub chart sets through `mesh.ambient: true`. That is why nothing is enrolled in the mesh. Fix and consequences: [service-mesh-ambient](../service-mesh-ambient/README.md#known-issues).
+The Namespace is rendered by both the `cnpg` chart and the `developer-hub` chart. Both Applications use server-side apply under the same field manager (`argocd-controller`), so whichever syncs last owns the labels and the other's are dropped. Today `cnpg` wins: the namespace carries `app.kubernetes.io/name=cnpg`.
+
+Since 2026-10-14 `values-deploy.yaml` in `rhdh-platform-gitops` sets `mesh.ambient: false`, so the Hub chart no longer asks for `istio.io/dataplane-mode: ambient`. The conflict is now only over `app.kubernetes.io/*` labels and has no effect on the mesh. The Hub and its database stay out of the mesh on purpose; the design enrols golden-path apps, not the Hub. Setting `createNamespace: false` in `charts/cnpg/values.yaml` would still clear the OutOfSync.
 
 ## In the repos but not on the cluster
 
@@ -88,17 +96,35 @@ Do not assume a manifest in git is deployed.
 | In git | On the cluster | Effect |
 |---|---|---|
 | `argocd/apps/sonarqube.yaml`, `tools/sonarqube` | Not applied; no `sonarqube` namespace | Hub is configured for `http://sonarqube.sonarqube.svc:9000` and gets nothing back |
-| `argocd/apps/saas-stubs.yaml`, `tools/saas-stubs` | Not applied; no `saas-stubs` namespace | Jira, ServiceNow, Dynatrace, APIC and Artifactory cards have no backend. The plugin status table was recorded when the stubs were running |
+| `argocd/apps/saas-stubs.yaml`, `tools/saas-stubs` | Not applied; no `saas-stubs` namespace | APIC and Artifactory cards have no backend. Jira, Dynatrace and ServiceNow no longer use the stubs: they point at real developer tenants (ServiceNow since 2026-10-15, URL and credentials from Vault). The plugin status table was recorded when the stubs were running |
+| `tools/install/wire-rhdh-secrets.py` | Sets `SERVICENOW_BASE_URL` to the `saas-stubs` URL | After a rebuild, overwrite Vault key `servicenow-base-url` with the developer instance URL, or the ServiceNow tab goes back to the stub |
 | `docs/rhdh-disconnected-plugins/plugins-oci.txt` (target pins) | Older pins still loaded | See [rhdh-plugins](../rhdh-plugins/README.md#installed-on-sandbox3257) |
 | Catalog locations on `rmallam/RHDH-SM-DevSpaces` | Repo returns 404 without credentials | The three Dev Spaces templates (`template-node-udi-devspaces`, `template-start-feature-devspaces`, `template-open-devspaces-namespace`) do not load for anyone outside that repo |
 | Snyk plugin | Not loaded | The self-exported image is private; commit `abc1bbd` skips it |
+
+## On the cluster but not in git
+
+A rebuild from the repos will not bring these back.
+
+| On the cluster | How it got there | To keep it |
+|---|---|---|
+| `routingViaHost: true` | `oc patch networks.operator.openshift.io cluster`, 2026-10-14 (command in `notes.md`) | Make it a rebuild step, before the mesh chart syncs |
+| `bookinfo` namespace, Deployments and waypoint | Applied by hand, 2026-10-14 | Add it to `rhdh-platform-gitops` with its policies |
+| Catalog location `https://github.com/rmallam/drtest/tree/main/catalog-info.yaml` (`component:default/drtest`) | Registered through the Hub UI, so it lives only in table `catalog.locations` | Add it to `catalog.locations` in the Hub chart values; a database rebuild drops it |
+| Vault key `secrets/squid/htpasswd`, and the ServiceNow developer-instance values in `servicenow-base-url`, `servicenow-username`, `servicenow-password` | Written to Vault by hand. `scripts/seed-vault.py` does not write the Squid key | Script or document the seeding. Vault runs in `-dev` mode, so a pod restart loses them |
+| Operator Subscriptions for RHDH, Service Mesh 3, Kiali, Dev Spaces, OpenShift GitOps, RHBK, cert-manager | OperatorHub. Only CloudNativePG has manifests here (`components/cnpg`, applied with `oc apply -k`) | Add Subscription and OperatorGroup manifests in the LLD's shape (own namespace, Manual approval, starting CSV) |
+| Second DevWorkspace Subscription, in `openshift-devspaces` | Unknown; a duplicate of the one in `openshift-operators` | Check which one Dev Spaces needs and remove the other |
+| `Keycloak/keycloak` with `keycloak-pgsql`, namespace `keycloak` | Not in either repo. The Hub does not use it (the Keycloak catalog plugin is disabled) | Remove it, or add it if a later test needs it |
+
+The `letsencrypt-production-aws-fallback` and `zerossl-production-aws` ClusterIssuers and the cert-manager operator come with the RHDP sandbox, not from this lab, so they are not listed. Secrets are not listed either: they belong in Vault, not git.
 
 ## Not built yet
 
 | Area | State |
 |---|---|
-| Mesh workloads | None enrolled. `Istio` reports `IN USE 0`. See [service-mesh-ambient](../service-mesh-ambient/README.md) |
-| Mesh policy | No `PeerAuthentication`, `AuthorizationPolicy`, waypoint or `Gateway` |
+| Mesh workloads | `bookinfo` only, by hand. ztunnel logs show its connections completing. `Istio` reports `IN USE 1`. See [service-mesh-ambient](../service-mesh-ambient/README.md) |
+| Mesh policy | No `PeerAuthentication`, `AuthorizationPolicy` or ingress `Gateway`. One waypoint, in `bookinfo` |
+| Hub through the proxy | Squid is running, but `httpProxy.enabled` is false, so no Hub call goes through it yet |
 | User workload monitoring | Off. The mesh `ServiceMonitor` and `PodMonitor` are not scraped |
 | Tekton | No Pipelines operator, so the Tekton plugin has nothing to show |
 | Second Argo CD instance | Only the default instance exists |
@@ -119,7 +145,9 @@ Everything here exists to make a throwaway cluster convenient. None of it belong
 | OpenLDAP on `emptyDir` with passwords in `bootstrap.ldif` | `tools/ldap` | Stand-in for a corporate directory |
 | Vault in `-dev` mode | `tools/vault` | In-memory, root token |
 | Automatic install-plan approval, `openshift-operators` | All Subscriptions | Pin a starting CSV, Manual approval, operator-specific namespaces where the platform requires them |
-| CNPG 1 instance / 10Gi / no backup | `charts/cnpg` | See [rhdh-cnpg](../rhdh-cnpg/README.md) |
+| CNPG 10Gi / no backup / image not pinned | `charts/cnpg` | See [rhdh-cnpg](../rhdh-cnpg/README.md) |
+| Squid on an `_edge` image under `anyuid`, htpasswd in dev-mode Vault | `charts/squid` in `rhdh-platform-gitops` | Stand-in for the customer's own authenticated proxy; use theirs |
+| Real SaaS developer tenants (Jira, Dynatrace, ServiceNow) | Hub `values-demo.yaml` | Personal trial tenants; the customer supplies its own |
 | `defaultEditor: …/che-code/latest`, `istio.version: ""` | Dev Spaces and mesh charts | Pin both for a freeze |
 | Segment analytics provider, Lightspeed | Default RHDH 1.10 plugin profile | Loaded unless disabled; decide per customer |
 

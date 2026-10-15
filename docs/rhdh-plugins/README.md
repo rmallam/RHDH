@@ -39,7 +39,7 @@ What each Developer Hub plugin needs to light up, on this ROSA lab and in a cust
 
 ## Installed on sandbox3257
 
-The table above was recorded on `rosa-89s85`, with `saas-stubs` and SonarQube running. Neither is deployed on the current cluster ([lab state](../lab-state/README.md)), so any row that depends on a stub or on in-cluster Sonar has no backend there until those two Applications are applied.
+The table above was recorded on `rosa-89s85`, with `saas-stubs` and SonarQube running. Neither is deployed on the current cluster ([lab state](../lab-state/README.md)). Jira, Dynatrace and ServiceNow now point at real developer tenants instead of the stubs (ServiceNow since 2026-10-15). APIC, Artifactory and SonarQube still have no backend there until those two Applications are applied.
 
 Below is what the Hub pod actually holds: versions from `package.json` under `dynamic-plugins-root`, load result from the backend log, both read on 2026-10-14. The log only reports backend plugins, so a frontend-only plugin is marked n/a: installed, but not confirmed to render. **Target** is the pin in [`plugins-oci.txt`](../rhdh-disconnected-plugins/plugins-oci.txt). Where the two differ, git is ahead of the cluster.
 

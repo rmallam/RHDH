@@ -24,14 +24,15 @@ Reuse this on the next cluster. Hub must **not** use the operator-bundled `backs
 
 Switching off the local DB **wipes Hub state** (catalog, sessions, scaffolder history). LDAP and catalog locations re-import. There is no dump/restore in this lab path.
 
-## What runs on sandbox3257 (2026-10-14)
+## What runs on sandbox3257 (2026-10-15)
 
 Same pattern, two differences from the table above: the `Cluster` CR now comes from `rmallam/rhdh-platform-gitops` (`charts/cnpg`, Argo app `cnpg`), and the Hub chart there has `database.cnpg.enabled: false` so it only reads the Secret.
 
 | Piece | Value |
 |---|---|
 | Operator | `cloudnative-pg.v1.30.1`, channel `stable-v1`, `cnpg-system` |
-| Cluster CR | `rhdh-pg` in `rhdh`, 1 instance, 10Gi on `gp3-csi`, `max_connections` 200 |
+| Cluster CR | `rhdh-pg` in `rhdh`, 3 instances, 10Gi each on `gp3-csi`, `max_connections` 200 |
+| DR test cluster | `rhdh-pg-dr` in `rhdh-dr`, 3 instances, 10Gi each. Same chart with `values-dr.yaml` (Argo app `cnpg-dr`). Not used by the Hub and not replicating from `rhdh-pg` |
 | Postgres image | `ghcr.io/cloudnative-pg/postgresql:18.6-system-trixie` — **PostgreSQL 18.6** |
 | Why 18 | `cluster.imageName` is empty, so the operator filled in its own default. Nobody chose 18 |
 | Plugin schemas | 28 plugin schemas in database `app` (`pluginDivisionMode: schema`). Contents: [rhdh-database](../rhdh-database/README.md) |

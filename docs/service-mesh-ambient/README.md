@@ -2,7 +2,7 @@
 
 What the mesh chart installs, how a namespace joins the mesh, and what still has to be built before this proves anything about traffic. Chart: `rmallam/rhdh-platform-gitops`, `charts/service-mesh`. Argo app: `service-mesh`.
 
-**Update this file when a workload is enrolled, a policy is added, or an enrolment fails.** As of 2026-10-14 the control plane is healthy and the data plane has carried no traffic. Read [Not proven yet](#not-proven-yet) before quoting this lab as evidence that ambient works.
+**Update this file when a workload is enrolled, a policy is added, or an enrolment fails.** As of 2026-10-15 `routingViaHost` is `true` and one sample namespace, `bookinfo`, is enrolled with a waypoint. Its pods pass their probes under ztunnel and ztunnel logs show its connections completing. There is still no mTLS or authorization policy. Read [Not proven yet](#not-proven-yet) before quoting this lab as evidence that ambient works.
 
 ## What runs on sandbox3257
 
@@ -72,16 +72,16 @@ Un-enrol by removing the label. No pod restart either way.
 
 ## Not proven yet
 
-The control plane reconciles and both DaemonSets are ready. None of the following has been exercised.
+The control plane reconciles and both DaemonSets are ready. The first two rows have now been exercised; the rest have not.
 
-| Gap | State on sandbox3257 | What to do |
+| Gap | State on sandbox3257 (2026-10-15) | What to do |
 |---|---|---|
-| Enrolled workloads | **None.** Only the `ztunnel` namespace carries the ambient label. `Istio/default` shows `IN USE 0` | Fix the `rhdh` namespace conflict below, or label a test namespace |
-| OVN-Kubernetes local gateway mode | `routingViaHost: false` | Red Hat's ambient prerequisites for OVN-Kubernetes call for `routingViaHost: true`. Confirm against the OSSM 3.4 install guide and set it **before** judging whether traffic flows |
+| Enrolled workloads | `bookinfo` only, applied by hand (not in git). Its 6 pods carry `ambient.istio.io/redirection: enabled`, the namespace has `istio.io/use-waypoint: waypoint`, and `Istio/default` shows `IN USE 1` | Move `bookinfo` into `rhdh-platform-gitops`, then test policy on it. The Hub namespace stays out (`mesh.ambient: false`) |
+| OVN-Kubernetes local gateway mode | `routingViaHost: true`, set by hand on 2026-10-14 | Done. Before it was set, kubelet probes to CloudNativePG port 8000 timed out when `rhdh` was captured. Make it a rebuild step |
 | User workload monitoring | Off; no `cluster-monitoring-config` | The two monitors exist but nothing scrapes them, so Kiali has no mesh metrics. Enable it |
 | STRICT mTLS | No `PeerAuthentication` | Ambient defaults to PERMISSIVE. Add a mesh-wide STRICT policy |
 | Deny by default | No `AuthorizationPolicy` | Add an empty policy per enrolled namespace, then ALLOW rules |
-| Waypoints | None | Needed only for L7 policy or routing |
+| Waypoints | One, `Gateway/waypoint` in `bookinfo` (`istio.io/waypoint-for: service`), Programmed | Needed only for L7 policy or routing |
 | Ingress | No `Gateway`, no gateway Deployment | Not built |
 | Mesh CA | Self-signed istiod CA | No `cacerts` Secret |
 
@@ -199,8 +199,9 @@ docs/service-mesh-ambient/tests/test-docs.sh
 
 | When | Error | Fix |
 |---|---|---|
-| 2026-10-14 | `rhdh` namespace loses `istio.io/dataplane-mode: ambient`; `developer-hub` Application stays OutOfSync on the Namespace; `Istio` shows `IN USE 0` | Both `charts/cnpg` and `charts/developer-hub` render `Namespace/rhdh`, and both Applications apply it as field manager `argocd-controller`. The last sync owns the labels. Set `createNamespace: false` in `charts/cnpg/values.yaml` so only the Hub chart owns the namespace. **The Hub and its Postgres are then enrolled on the next sync** — do it deliberately, with local gateway mode decided first |
-| 2026-10-14 | Kiali graph empty | Nothing enrolled, and user workload monitoring is off, so the istiod and ztunnel monitors are not scraped |
+| 2026-10-14 | `rhdh` namespace loses `istio.io/dataplane-mode: ambient`; `developer-hub` Application stays OutOfSync on the Namespace; `Istio` shows `IN USE 0` | Both `charts/cnpg` and `charts/developer-hub` render `Namespace/rhdh`, and both Applications apply it as field manager `argocd-controller`. The last sync owns the labels. Set `createNamespace: false` in `charts/cnpg/values.yaml` so only the Hub chart owns the namespace. Since 2026-10-14 `values-deploy.yaml` sets `mesh.ambient: false`, so this no longer enrols the Hub; it only clears the OutOfSync |
+| 2026-10-14 | CloudNativePG never Ready once `rhdh` was captured; kubelet probes to port 8000 time out | `routingViaHost` was `false`. It is now `true`. The Hub and its database are kept out of the mesh in any case |
+| 2026-10-14 | Kiali graph empty | User workload monitoring is off, so the istiod and ztunnel monitors are not scraped. `bookinfo` traffic exists but Kiali has no metrics for it |
 | — | `Warning: sailoperator.io/v1alpha1 ZTunnel is deprecated` | Manifest uses the old API. Move to `sailoperator.io/v1` and drop `spec.profile` |
 | — | `The ZTunnel "<name>" is invalid: metadata.name must be 'default'` | The CRD allows one ZTunnel, named `default` |
 | — | ztunnel rejects istiod, or workloads get no certificates | `pilot.trustedZtunnelNamespace` does not match the namespace in the `ZTunnel` CR |
