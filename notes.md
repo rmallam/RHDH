@@ -91,3 +91,28 @@ spec:
               kubernetes.io/metadata.name: openshift-devspaces
 
 ```
+
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-workspace-ingress
+  namespace: <username>-devspaces
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress"]
+  ingress:
+  # CRITICAL — IDE Route / health check
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+  # Control plane → workspace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-devspaces   # use real CheCluster NS
+  # Intra-namespace
+  - from:
+    - podSelector: {}
+```
