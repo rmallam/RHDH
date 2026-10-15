@@ -61,3 +61,33 @@ skopeo copy \
   docker://artifactory.example.com/redhat/devspaces/udi-rhel9:$SIG
 
 ```
+```
+On this cluster the policy is deny-egress-to-other-namespaces in dw-ns-admin. Add this item under spec.egress:
+
+
+- to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/component: workspaces-namespace
+          app.kubernetes.io/part-of: che.eclipse.org
+Leave the existing allows for dw-ns-admin, DNS, authentication, and the API server addresses as they are. Do not add a ports list on this rule. The gateway uses port 3030 and the editor uses port 3100.
+
+On the customer cluster, put that same item on the egress policy in their Che namespace (openshift-devspaces for a normal install). If a workspace namespace also denies ingress, add this there too, with their Che namespace name:
+
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-che-namespace
+  namespace: <username>-devspaces
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-devspaces
+
+```
