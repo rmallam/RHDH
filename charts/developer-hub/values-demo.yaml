@@ -14,6 +14,16 @@ database:
     enabled: true
     instances: 1
     storage: 10Gi
+    backup:
+      enabled: true
+      target: prefer-standby
+      volumeSnapshot:
+        className: csi-aws-vsc
+        online: true
+        onlineConfiguration:
+          immediateCheckpoint: false
+          waitForArchive: true
+          snapshotOwnerReference: none
   external:
     enabled: true
 
