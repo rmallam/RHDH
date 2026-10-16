@@ -124,3 +124,17 @@ spec:
     networkPolicy:
       enabled: true
 ```
+
+```
+FROM registry.redhat.io/devspaces/udi-rhel9:3.30
+USER 0
+RUN <your packages and files>
+USER 1001
+On a machine that can pull registry.redhat.io and can push to Artifactory:
+
+
+podman login registry.redhat.io
+podman login artifactory.example.com
+podman build -t artifactory.example.com/local-udi/custom-udi:1 .
+podman push artifactory.example.com/local-udi/custom-udi:1
+```
