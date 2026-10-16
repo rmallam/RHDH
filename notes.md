@@ -116,6 +116,28 @@ spec:
   - from:
     - podSelector: {}
 ```
+```
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-devspaces
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: devworkspace-operator
+```
+```
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/component: workspaces-namespace
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: che.eclipse.org
+  policyTypes:
+  - Ingress
+```
 To have the operator create these, on CheCluster:
 
 ```
