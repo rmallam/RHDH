@@ -23,14 +23,13 @@ metadata:
     backstage.io/kubernetes-id: ${{ values.appName }}
     backstage.io/kubernetes-namespace: ${{ values.targetNamespace }}
     vault.io/secrets-path: rhdh
-    jira/project-key: DEMO
-    jira/component: ${{ values.appName }}
+    jira/project-key: SCRUM
     snyk.io/org-id: stub-org
     snyk.io/org-name: stub-org
     snyk.io/project-ids: stub
     servicenow.com/entity-id: demo
     jfrog-artifactory/image-name: ${{ values.appName }}
-    dynatrace.com/dynatrace-entity-id: SERVICE-DEMO
+    dynatrace.com/dynatrace-entity-id: SERVICE-39720C1E0047A5C0
     acme.io/devfile-path: devfile.yaml
     acme.io/helm-chart: chart
     acme.io/mesh: ambient

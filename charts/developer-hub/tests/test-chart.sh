@@ -84,6 +84,9 @@ grep -q "enableLocalDb: true" "$PROD" || { echo "FAIL prod default should keep l
 grep -q "postgresql.cnpg.io/v1" "$PROD" && { echo "FAIL prod must not emit CNPG Cluster by default"; fail=1; }
 grep -q "name: rhdh-demo-catalog" "$DEMO" || { echo "FAIL demo missing kitchen-sink ConfigMap"; fail=1; }
 grep -q "plugin-kitchen-sink" "$DEMO" || { echo "FAIL demo missing kitchen-sink entity"; fail=1; }
+grep -q "jira/project-key: SCRUM" "$DEMO" || { echo "FAIL demo kitchen-sink must use Jira project SCRUM"; fail=1; }
+grep -q "SERVICE-39720C1E0047A5C0" "$DEMO" || { echo "FAIL demo kitchen-sink must use a real Dynatrace SERVICE id"; fail=1; }
+grep -q "jira/component:" "$DEMO" && { echo "FAIL demo must not set jira/component unless that component exists in Jira"; fail=1; }
 grep -q "vault.io/secrets-path" "$DEMO" || { echo "FAIL demo missing vault annotation"; fail=1; }
 grep -q "name: rhdh-demo-catalog" "$PROD" && { echo "FAIL prod must not ship kitchen-sink ConfigMap"; fail=1; }
 

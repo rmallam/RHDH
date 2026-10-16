@@ -29,14 +29,13 @@ metadata:
     backstage.io/kubernetes-id: developer-hub
     backstage.io/kubernetes-namespace: rhdh
     vault.io/secrets-path: rhdh
-    jira/project-key: DEMO
-    jira/component: kitchen-sink
+    jira/project-key: SCRUM
     snyk.io/org-id: stub-org
     snyk.io/org-name: stub-org
     snyk.io/project-ids: stub
     servicenow.com/entity-id: demo
     jfrog-artifactory/image-name: plugin-kitchen-sink
-    dynatrace.com/dynatrace-entity-id: SERVICE-DEMO
+    dynatrace.com/dynatrace-entity-id: SERVICE-39720C1E0047A5C0
     github.com/project-slug: rmallam/RHDH
 spec:
   type: service

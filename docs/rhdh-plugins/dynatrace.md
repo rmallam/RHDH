@@ -17,7 +17,7 @@ Service observability + DQL cards.
 
 `DYNATRACE_URL`, `DYNATRACE_CLIENT_ID`, `DYNATRACE_CLIENT_SECRET`, `DYNATRACE_ACCOUNT_URN`
 
-Demo: SaaS stub. Kitchen-sink: `SERVICE-DEMO`.
+Demo: SaaS stub. Kitchen-sink: `SERVICE-39720C1E0047A5C0`.
 
 ## Known issues
 
