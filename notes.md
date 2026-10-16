@@ -34,3 +34,93 @@ That Secret is the certificate the router serves for the ExternalDNS name. Its s
 
 Dev Spaces Routes are always edge TLS, with HTTP redirected to HTTPS. There is no setting for passthrough or re-encrypt. tlsSecretName only supplies the certificate on that edge Route.
 ```
+
+```
+On the hosted cluster kubeconfig:
+
+
+oc patch networks.operator.openshift.io cluster --type=merge -p '{"spec":{"defaultNetwork":{"ovnKubernetesConfig":{"gatewayConfig":{"routingViaHost":true}}}}}'
+Check it:
+
+
+oc get networks.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.gatewayConfig.routingViaHost}{"\n"}'
+oc get clusteroperator network
+Expect true, and network AVAILABLE=True / PROGRESSING=False after CNO finishes.
+
+```
+```
+SRC=registry.redhat.io/devspaces/udi-rhel9:3.30-1787764814
+DST=artifactory.example.com/redhat/devspaces/udi-rhel9:3.30-1787764814
+skopeo login registry.redhat.io
+skopeo login artifactory.example.com
+skopeo copy --all --preserve-digests docker://$SRC docker://$DST
+DIGEST=$(skopeo inspect docker://$SRC | jq -r .Digest)
+SIG=sha256-${DIGEST#sha256:}.sig
+skopeo copy \
+  docker://registry.redhat.io/devspaces/udi-rhel9:$SIG \
+  docker://artifactory.example.com/redhat/devspaces/udi-rhel9:$SIG
+
+```
+```
+On this cluster the policy is deny-egress-to-other-namespaces in dw-ns-admin. Add this item under spec.egress:
+
+
+- to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/component: workspaces-namespace
+          app.kubernetes.io/part-of: che.eclipse.org
+Leave the existing allows for dw-ns-admin, DNS, authentication, and the API server addresses as they are. Do not add a ports list on this rule. The gateway uses port 3030 and the editor uses port 3100.
+
+On the customer cluster, put that same item on the egress policy in their Che namespace (openshift-devspaces for a normal install). If a workspace namespace also denies ingress, add this there too, with their Che namespace name:
+
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-che-namespace
+  namespace: <username>-devspaces
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-devspaces
+
+```
+
+```
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-workspace-ingress
+  namespace: <username>-devspaces
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress"]
+  ingress:
+  # CRITICAL — IDE Route / health check
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+  # Control plane → workspace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-devspaces   # use real CheCluster NS
+  # Intra-namespace
+  - from:
+    - podSelector: {}
+```
+To have the operator create these, on CheCluster:
+
+```
+spec:
+  networking:
+    networkPolicy:
+      enabled: true
+```
